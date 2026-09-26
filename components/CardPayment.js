@@ -14,7 +14,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { api, money, newKey } from '../lib/verdeClient';
 import Result from './Result';
 
-export default function CardPayment({ start, onDone }) {
+export default function CardPayment({ start, onDone, label = 'Pay by card' }) {
   const [payment, setPayment] = useState(null);
   const [started, setStarted] = useState(null);
   const [done, setDone] = useState(null);
@@ -28,7 +28,7 @@ export default function CardPayment({ start, onDone }) {
     setBusy(true); setErr(null); setDone(null);
     const r = await api('/payments', { method: 'POST', body: start, key: newKey() });
     setStarted(r);
-    if (r.ok) setPayment(r.json.payment);
+    if (r.ok) setPayment(r.json.payment); else setErr(r.json?.error?.message || 'The payment could not be started.');
     setBusy(false);
   };
 
@@ -38,9 +38,8 @@ export default function CardPayment({ start, onDone }) {
     (async () => {
       const stripe = await loadStripe(payment.publishable_key, payment.stripe_account ? { stripeAccount: payment.stripe_account } : undefined);
       if (!alive || !stripe) return;
-      const elements = stripe.elements({ clientSecret: payment.client_secret });
-      const el = elements.create('payment');
-      el.mount(box.current);
+      const elements = stripe.elements({ clientSecret: payment.client_secret, appearance: { theme: 'stripe', variables: { colorPrimary: '#1d3450', borderRadius: '10px' } } });
+      elements.create('payment').mount(box.current);
       stripeRef.current = stripe; elementsRef.current = elements;
     })();
     return () => { alive = false; };
@@ -52,21 +51,20 @@ export default function CardPayment({ start, onDone }) {
     if (error) { setErr(error.message || 'The card was not accepted.'); setBusy(false); return; }
     const r = await api('/payments/' + payment.id + '/complete', { method: 'POST', body: {} });
     setDone(r); setBusy(false);
-    if (r.ok && onDone) onDone(r.json);
+    if (r.ok && onDone) onDone(r.json); else if (!r.ok) setErr(r.json?.error?.message || 'The booking could not be finished.');
   };
 
   return (
-    <div className="card">
+    <div>
       {!payment ? (
-        <button disabled={busy} onClick={begin}>{busy ? 'Starting...' : 'Pay by card'}</button>
-      ) : (
-        <>
-          <p className="ui" style={{ margin: '0 0 10px' }}>Total: <b>{money(payment.amount_cents)}</b> - Verde worked this out from the club's own rates.</p>
+        <button className="btn ghost" style={{ width: '100%' }} disabled={busy} onClick={begin}>{busy ? 'One moment...' : label}</button>
+      ) : !done?.ok ? (
+        <div className="card-box">
           <div ref={box} />
-          {err ? <p className="bad">{err}</p> : null}
-          {!done ? <button style={{ marginTop: 12 }} disabled={busy} onClick={pay}>{busy ? 'Working...' : 'Pay ' + money(payment.amount_cents)}</button> : null}
-        </>
-      )}
+          <button className="btn" style={{ width: '100%', marginTop: 14 }} disabled={busy} onClick={pay}>{busy ? 'Processing...' : 'Pay ' + money(payment.amount_cents)}</button>
+        </div>
+      ) : null}
+      {err ? <div className="notice bad">{err}</div> : null}
       <Result result={started} title="POST /payments" />
       <Result result={done} title="POST /payments/{id}/complete" />
     </div>

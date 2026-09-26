@@ -1,16 +1,19 @@
 // components/Result.js
-// What Verde answered: the error in plain words when there is one, and the
-// raw JSON underneath - this is a test site, so the exact response matters.
+// The exact request's answer - HTTP status, error, raw JSON. Shown only in
+// Developer view (components/DevMode), so a demo reads as a club's website.
+import { useDevMode } from './DevMode';
+
 export default function Result({ result, title = 'Response' }) {
-  if (!result) return null;
+  const { dev } = useDevMode();
+  if (!dev || !result) return null;
   const err = result.json && result.json.error;
   return (
-    <div className="card">
-      <div className="ui" style={{ fontSize: 14, marginBottom: 8 }}>
-        <b>{title}</b> - HTTP {result.status}{result.replayed ? ' (replayed: same Idempotency-Key)' : ''}
-        {err ? <div className="bad" style={{ marginTop: 6 }}>{err.code}: {err.message}</div> : null}
-      </div>
+    <details className="devbox" open>
+      <summary>
+        <span className="devtag">API</span> {title} <span className="devstatus">HTTP {result.status}{result.replayed ? ' · replayed' : ''}</span>
+      </summary>
+      {err ? <div className="deverr">{err.code}: {err.message}</div> : null}
       <pre>{JSON.stringify(result.json, null, 2)}</pre>
-    </div>
+    </details>
   );
 }
