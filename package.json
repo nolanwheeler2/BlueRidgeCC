@@ -1,0 +1,17 @@
+{
+  "name": "blue-ridge-cc",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Blue Ridge CC - a test website for Verde's Booking API",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "^4.8.0",
+    "next": "14.2.35",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}
