@@ -4,6 +4,8 @@
 //   simulators  POST /simulators/reservations/{id}/cancel
 //   courts      POST /courts/reservations/{id}/cancel
 //   dining      POST /dining/reservations/{id}/cancel
+//   rooms       POST /lodging/reservations/{id}/cancel
+//   packages    GET /packages/bookings/{id}, POST /packages/bookings/{id}/cancel
 // Cancellation fees are reported, never waived.
 import { useState } from 'react';
 import Layout from '../components/Layout';
@@ -17,7 +19,10 @@ const KINDS = {
   sim: ['Simulator', (id) => '/simulators/reservations/' + id + '/cancel'],
   court: ['Court', (id) => '/courts/reservations/' + id + '/cancel'],
   dining: ['Dining', (id) => '/dining/reservations/' + id + '/cancel'],
+  room: ['Room', (id) => '/lodging/reservations/' + id + '/cancel'],
+  pkg: ['Package', (id) => '/packages/bookings/' + id + '/cancel'],
 };
+const LOOKUP = { tee: (id) => '/bookings/' + id, pkg: (id) => '/packages/bookings/' + id };
 
 export default function Manage() {
   const [kind, setKind] = useState('tee');
@@ -42,10 +47,25 @@ export default function Manage() {
             <label className="field grow">Reference<input value={id} onChange={(e) => setId(e.target.value.trim())} placeholder="00000000-0000-0000-0000-000000000000" /></label>
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-            {kind === 'tee' ? <button className="btn ghost" disabled={!id} onClick={async () => { setCancel(null); setLook(await api('/bookings/' + id)); }}>Look it up</button> : null}
+            {LOOKUP[kind] ? <button className="btn ghost" disabled={!id} onClick={async () => { setCancel(null); setLook(await api(LOOKUP[kind](id))); }}>Look it up</button> : null}
             <button className="btn" disabled={!id || canceled} onClick={async () => { if (window.confirm('Cancel this ' + KINDS[kind][0].toLowerCase() + '?')) setCancel(await api(KINDS[kind][1](id), { method: 'POST', body: {} })); }}>Cancel it</button>
           </div>
-          {b ? (
+          {b && kind === 'pkg' ? (
+            <div className="resource" style={{ gridTemplateColumns: '1fr', marginTop: 18 }}>
+              <div className="body">
+                <h3>{b.package?.name || 'Package'}, {b.guests} {b.guests === 1 ? 'guest' : 'guests'}, arriving {new Date(b.arrival + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
+                <div className="tags">
+                  <span className={'tag' + (canceled ? '' : ' good')}>{canceled ? 'Canceled' : 'Confirmed'}</span>
+                  {b.confirmation ? <span className="tag">Confirmation {b.confirmation}</span> : null}
+                  {b.room ? <span className="tag">{b.room.name}</span> : null}
+                  <span className="tag">{money(b.paid_cents)} paid of {money(b.total_cents)}</span>
+                  {b.balance_cents > 0 ? <span className="tag">{money(b.balance_cents)} due on arrival</span> : null}
+                </div>
+                {(b.tee_times || []).map((t, i) => <p key={i} style={{ margin: '8px 0 0' }}>Tee time: {new Date(t.start).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}, {t.players} {t.players === 1 ? 'player' : 'players'}</p>)}
+                {(b.credits || []).map((c) => <p key={c.kind} style={{ margin: '4px 0 0' }}>{c.kind === 'food_and_beverage' ? 'Food and drink' : 'Pro shop'} credit: {money(c.remaining_cents)} left of {money(c.amount_cents)}</p>)}
+              </div>
+            </div>
+          ) : b ? (
             <div className="resource" style={{ gridTemplateColumns: '1fr', marginTop: 18 }}>
               <div className="body">
                 <h3>{b.players} {b.players === 1 ? 'player' : 'players'}{b.start ? ', ' + new Date(b.start).toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}</h3>
@@ -58,12 +78,12 @@ export default function Manage() {
               </div>
             </div>
           ) : null}
-          {cancel?.ok ? <div className="notice info">{cancel.json?.already_cancelled ? 'This booking was already canceled.' : (cancel.json?.message || 'Canceled.')}</div> : null}
+          {cancel?.ok ? <div className="notice info">{cancel.json?.already_cancelled ? 'This booking was already canceled.' : (cancel.json?.message || ('Canceled.' + (cancel.json?.fee_cents > 0 ? ' A late fee of ' + money(cancel.json.fee_cents) + ' applies.' : '') + (cancel.json?.paid_cents > (cancel.json?.fee_cents || 0) ? ' The club will refund ' + money(cancel.json.paid_cents - (cancel.json?.fee_cents || 0)) + '.' : '')))}</div> : null}
           <Notice result={cancel} kind="bad" />
           <Notice result={look} kind="bad" />
         </div>
         <Result result={cancel} title="Cancel" />
-        <Result result={look} title="GET /bookings/{id}" />
+        <Result result={look} title={kind === 'pkg' ? 'GET /packages/bookings/{id}' : 'GET /bookings/{id}'} />
       </div>
     </Layout>
   );

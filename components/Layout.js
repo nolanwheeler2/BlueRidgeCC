@@ -10,7 +10,7 @@ import Mountains from './Mountains';
 import { useMember } from './Member';
 
 const NAV = [
-  ['/tee-times', 'Tee Times'], ['/simulators', 'Simulators'], ['/courts', 'Courts'], ['/rooms', 'Stay'],
+  ['/tee-times', 'Tee Times'], ['/simulators', 'Simulators'], ['/courts', 'Courts'], ['/rooms', 'Stay'], ['/packages', 'Packages'],
   ['/dining', 'Dining'], ['/tournaments', 'Events'], ['/private-events', 'Private Events'],
 ];
 
@@ -91,7 +91,7 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
               <p style={{ fontSize: 14, lineHeight: 1.7, color: '#b9c7d6', maxWidth: 360 }}>Eighteen holes along the ridgeline, a clubhouse built for long lunches, and rooms for the night after.</p>
             </div>
             <div>
-              <a href="/tee-times">Tee times</a><a href="/simulators">Simulators</a><a href="/courts">Courts</a><a href="/rooms">Stay</a>
+              <a href="/tee-times">Tee times</a><a href="/simulators">Simulators</a><a href="/courts">Courts</a><a href="/rooms">Stay</a><a href="/packages">Stay and play</a>
             </div>
             <div>
               <a href="/dining">Dining</a><a href="/tournaments">Events</a><a href="/private-events">Private events</a><a href="/manage">Manage a booking</a>
