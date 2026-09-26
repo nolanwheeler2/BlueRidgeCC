@@ -9,6 +9,8 @@ import Summary from '../components/Summary';
 import Success from '../components/Success';
 import Scene from '../components/Scene';
 import CardPayment from '../components/CardPayment';
+import Details, { person } from '../components/Details';
+import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented } from '../components/Picker';
 import { api, newKey, timeIn, todayPlus } from '../lib/verdeClient';
 
@@ -23,19 +25,22 @@ export default function Simulators() {
   const [booked, setBooked] = useState(null);
   const [paid, setPaid] = useState(null);
   const [key, setKey] = useState(newKey());
+  const { member, accounts } = useMember();
 
   useEffect(() => {
     setPick(null); setQuote(null); setBooked(null); setPaid(null); setKey(newKey());
     api('/simulators?date=' + date + '&duration=' + duration).then(setList);
   }, [date, duration]);
   const choose = async (bay, start) => { setPick({ bay, start }); setBooked(null); setQuote(await api('/simulators/quote', { method: 'POST', body: { bay_id: bay.id, start, duration } })); };
-  const book = async () => setBooked(await api('/simulators/bookings', { method: 'POST', key, body: {
-    bay_id: pick.bay.id, start: pick.start, duration, party_size: party, name: who.name, email: who.email, phone: who.phone,
+  const book = async (account) => setBooked(await api('/simulators/bookings', { method: 'POST', key, body: {
+    bay_id: pick.bay.id, start: pick.start, duration, party_size: party, ...person(who, member),
+    ...(account ? { payment: 'member_account', charge_account_id: account } : {}),
     expected_total_cents: quote?.json?.quote?.total_cents } }));
   const tz = list?.json?.timezone;
   const q = quote?.json?.quote;
   const done = booked?.json?.reservation || paid;
-  const ready = who.name && who.email;
+  const ready = !!member || (who.name && who.email);
+  const p = person(who, member);
   const bays = list?.json?.bays || [];
 
   return (
@@ -80,11 +85,7 @@ export default function Simulators() {
                 <div className="panel">
                   <h2><span className="n">2</span>Your details</h2>
                   <p className="sub">The confirmation goes to this email.</p>
-                  <div className="fields">
-                    <label className="field grow">Name<input value={who.name} onChange={(e) => setWho({ ...who, name: e.target.value })} autoComplete="name" /></label>
-                    <label className="field grow">Email<input type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} autoComplete="email" /></label>
-                    <label className="field grow">Phone<input value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} autoComplete="tel" /></label>
-                  </div>
+                  <Details who={who} setWho={setWho} />
                   <Notice result={booked} kind="bad" />
                 </div>
               ) : null}
@@ -100,8 +101,9 @@ export default function Simulators() {
           total={q?.total_cents} fine={q ? 'Pay at the club, or by card now.' : null}>
           {q && !done ? (
             <>
-              <button className="btn" disabled={!ready} onClick={book}>Book - pay at the club</button>
-              {ready ? <CardPayment label="Pay now by card" start={{ type: 'simulator', bay_id: pick.bay.id, start: pick.start, duration, party_size: party, name: who.name, email: who.email, phone: who.phone }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
+              <button className="btn" disabled={!ready} onClick={() => book()}>Book - pay at the club</button>
+              {member && accounts.length ? <button className="btn ghost" onClick={() => book(accounts[0].id)}>Charge my member account</button> : null}
+              {ready ? <CardPayment label="Pay now by card" start={{ type: 'simulator', bay_id: pick.bay.id, start: pick.start, duration, party_size: party, ...p }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
             </>
           ) : null}
         </Summary>

@@ -6,6 +6,7 @@ import Layout from '../components/Layout';
 import Result from '../components/Result';
 import Notice from '../components/Notice';
 import EventCard from '../components/EventCard';
+import { useMember } from '../components/Member';
 import { api, newKey } from '../lib/verdeClient';
 
 export default function Tournaments() {
@@ -13,6 +14,8 @@ export default function Tournaments() {
   const [who, setWho] = useState({ name: '', email: '', phone: '' });
   const [entry, setEntry] = useState(null);
   const [entered, setEntered] = useState({});
+  const { member } = useMember();
+  useEffect(() => { if (member) setWho((w) => ({ ...w, name: w.name || member.name || '', email: w.email || member.email || '', phone: w.phone || member.phone || '' })); }, [member]);
   useEffect(() => { api('/tournaments').then(setList); }, []);
   const enter = async (t) => {
     const r = await api('/tournaments/' + t.id + '/entries', { method: 'POST', key: newKey(), body: who });

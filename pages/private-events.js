@@ -7,6 +7,7 @@ import Result from '../components/Result';
 import Notice from '../components/Notice';
 import Success from '../components/Success';
 import Scene from '../components/Scene';
+import { useMember } from '../components/Member';
 import { api, newKey, todayPlus } from '../lib/verdeClient';
 
 const LABEL = { wedding: 'Wedding', corporate: 'Corporate', banquet: 'Banquet', celebration: 'Celebration', golf_outing: 'Golf outing', meeting: 'Meeting', other: 'Something else' };
@@ -21,6 +22,8 @@ export default function PrivateEvents() {
   const [f, setF] = useState({ name: '', email: '', phone: '', occasion: 'wedding', guests: 100, preferred_date: todayPlus(180), message: '' });
   const [sent, setSent] = useState(null);
   const [key] = useState(newKey());
+  const { member } = useMember();
+  useEffect(() => { if (member) setF((x) => ({ ...x, name: x.name || member.name || '', email: x.email || member.email || '', phone: x.phone || member.phone || '' })); }, [member]);
   useEffect(() => { api('/private-events').then(setInfo); }, []);
   const e = info?.json?.enquiries;
   const send = async () => setSent(await api('/private-events/enquiries', { method: 'POST', key, body: { ...f, guests: Number(f.guests) } }));

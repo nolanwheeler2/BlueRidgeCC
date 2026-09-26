@@ -8,6 +8,8 @@ import Summary from '../components/Summary';
 import Success from '../components/Success';
 import Scene from '../components/Scene';
 import CardPayment from '../components/CardPayment';
+import Details, { person } from '../components/Details';
+import { useMember } from '../components/Member';
 import { StepBar, Segmented } from '../components/Picker';
 import { api, money, newKey, todayPlus } from '../lib/verdeClient';
 
@@ -25,6 +27,7 @@ export default function Rooms() {
   const [booked, setBooked] = useState(null);
   const [paid, setPaid] = useState(null);
   const [key, setKey] = useState(newKey());
+  const { member, accounts } = useMember();
 
   useEffect(() => {
     setRoom(null); setQuote(null); setBooked(null); setPaid(null); setKey(newKey());
@@ -32,12 +35,14 @@ export default function Rooms() {
     api('/lodging?check_in=' + checkIn + '&check_out=' + checkOut + '&guests=' + guests).then(setList);
   }, [checkIn, checkOut, guests]);
   const choose = async (r) => { setRoom(r); setBooked(null); setQuote(await api('/lodging/quote', { method: 'POST', body: { room_id: r.id, check_in: checkIn, check_out: checkOut } })); };
-  const book = async () => setBooked(await api('/lodging/bookings', { method: 'POST', key, body: {
-    room_id: room.id, check_in: checkIn, check_out: checkOut, guests, name: who.name, email: who.email, phone: who.phone,
-    requests: who.requests, expected_total_cents: quote?.json?.quote?.total_cents } }));
+  const book = async (account) => setBooked(await api('/lodging/bookings', { method: 'POST', key, body: {
+    room_id: room.id, check_in: checkIn, check_out: checkOut, guests, ...person(who, member), requests: who.requests,
+    ...(account ? { payment: 'member_account', charge_account_id: account } : {}),
+    expected_total_cents: quote?.json?.quote?.total_cents } }));
   const q = quote?.json?.quote;
   const done = booked?.json?.reservation || paid;
-  const ready = who.name && who.email;
+  const ready = !!member || (who.name && who.email);
+  const p = person(who, member);
   const rooms = list?.json?.rooms || [];
   const nights = nightsBetween(checkIn, checkOut);
 
@@ -87,10 +92,8 @@ export default function Rooms() {
                 <div className="panel">
                   <h2><span className="n">2</span>Your details</h2>
                   <p className="sub">The confirmation goes to this email.</p>
-                  <div className="fields">
-                    <label className="field grow">Name<input value={who.name} onChange={(e) => setWho({ ...who, name: e.target.value })} autoComplete="name" /></label>
-                    <label className="field grow">Email<input type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} autoComplete="email" /></label>
-                    <label className="field grow">Phone<input value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} autoComplete="tel" /></label>
+                  <Details who={who} setWho={setWho} />
+                  <div className="fields" style={{ marginTop: 14 }}>
                     <label className="field" style={{ flex: '1 1 100%' }}>Anything we should know?<textarea rows={2} value={who.requests} onChange={(e) => setWho({ ...who, requests: e.target.value })} placeholder="Late arrival, extra pillows, celebrating something..." /></label>
                   </div>
                   <Notice result={booked} kind="bad" />
@@ -109,8 +112,9 @@ export default function Rooms() {
           fine={q ? (q.payment?.mode === 'deposit' ? 'The club takes a ' + (q.payment.deposit_percent || '') + '% deposit when you book - pay by card.' : 'Pay at check-in, or by card now.') : null}>
           {q && !done ? (
             <>
-              {q.payment?.api_bookable !== false ? <button className="btn" disabled={!ready} onClick={book}>Book - pay at check-in</button> : null}
-              {ready ? <CardPayment label="Pay now by card" start={{ type: 'lodging', room_id: room.id, check_in: checkIn, check_out: checkOut, guests, name: who.name, email: who.email, phone: who.phone, requests: who.requests }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
+              {q.payment?.api_bookable !== false ? <button className="btn" disabled={!ready} onClick={() => book()}>Book - pay at check-in</button> : null}
+              {member && accounts.length ? <button className="btn ghost" onClick={() => book(accounts[0].id)}>Charge my member account</button> : null}
+              {ready ? <CardPayment label="Pay now by card" start={{ type: 'lodging', room_id: room.id, check_in: checkIn, check_out: checkOut, guests, ...p, requests: who.requests }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
             </>
           ) : null}
         </Summary>

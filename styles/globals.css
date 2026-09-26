@@ -260,3 +260,20 @@ footer.site .base { border-top: 1px solid rgba(255,255,255,.14); margin-top: 32p
 .info span { font-size: 13.5px; color: var(--muted); line-height: 1.5; }
 .tag { display: inline-block; }
 .tag::first-letter { text-transform: uppercase; }
+
+/* ---- Member sign-in (commit 007) ---- */
+.linkish { background: none; border: 0; padding: 0; font: inherit; color: var(--navy-2); text-decoration: underline; cursor: pointer; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+.avatar.sm { width: 30px; height: 30px; font-size: 13px; }
+.member-card { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--sand); border-radius: 12px; padding: 14px 16px; }
+.member-card b { display: block; color: var(--navy); }
+.member-card span { font-size: 13.5px; color: var(--muted); }
+.acct { position: relative; }
+.acct-btn { display: flex; align-items: center; gap: 8px; background: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px 3px 3px; cursor: pointer; font: 600 14px var(--sans); color: var(--navy); }
+.acct-menu { position: absolute; right: 0; top: 46px; background: #fff; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 14px 34px rgba(29,52,80,.14); padding: 12px; min-width: 220px; display: grid; gap: 6px; z-index: 30; }
+.acct-menu b { color: var(--navy); }
+.acct-menu span { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+.acct-menu a, .acct-menu button { text-align: left; background: none; border: 0; padding: 8px 6px; border-radius: 8px; font: 14px var(--sans); color: var(--ink); cursor: pointer; text-decoration: none; }
+.acct-menu a:hover, .acct-menu button:hover { background: var(--sand); }
+@media (max-width: 900px) { .topbar .brand { order: 1; } .signin, .acct { order: 2; margin-left: auto; } .menu-btn { order: 3; margin-left: 8px; } .topbar .wrap > .btn.small { order: 4; } }
+@media (max-width: 600px) { .acct-name { display: none; } }

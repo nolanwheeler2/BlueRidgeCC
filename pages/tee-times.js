@@ -9,6 +9,8 @@ import Notice from '../components/Notice';
 import Summary from '../components/Summary';
 import Success from '../components/Success';
 import CardPayment from '../components/CardPayment';
+import Details, { person } from '../components/Details';
+import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented, Toggle, TimeGroups } from '../components/Picker';
 import { api, money, newKey, todayPlus } from '../lib/verdeClient';
 
@@ -27,6 +29,7 @@ export default function TeeTimes() {
   const [booked, setBooked] = useState(null);
   const [paid, setPaid] = useState(null);
   const [bookKey, setBookKey] = useState(newKey());
+  const { member } = useMember();
 
   useEffect(() => { api('/club').then((r) => { const cs = r.json?.club?.courses || []; setCourses(cs); setCourseId(cs[0]?.id || 'none'); }); }, []);
   const cid = courseId && courseId !== 'none' ? courseId : undefined;
@@ -37,13 +40,14 @@ export default function TeeTimes() {
   }, [date, courseId]); // eslint-disable-line react-hooks/exhaustive-deps
   const doQuote = async (s, p = players, c = cart) => { setSlot(s); setBooked(null); setQuote(await api('/tee-times/quote', { method: 'POST', body: { start: s.start, players: p, cart: c, course_id: cid } })); };
   const book = async () => setBooked(await api('/tee-times/bookings', { method: 'POST', key: bookKey, body: {
-    start: slot.start, players, cart, course_id: cid, name: who.name, email: who.email, phone: who.phone,
+    start: slot.start, players, cart, course_id: cid, ...person(who, member),
     expected_total_cents: quote?.json?.quote?.total_cents } }));
 
   const q = quote?.json?.quote;
   const done = booked?.json?.booking || paid;
   const release = list?.json?.reason === 'release_in_progress' ? list.json.release : null;
-  const ready = who.name && who.email;
+  const ready = !!member || (who.name && who.email);
+  const p = person(who, member);
   const times = (list?.json?.tee_times || []).map((t) => ({ key: t.start, iso: t.start, label: t.time, sub: money(t.price_cents) + ' · ' + t.spots_remaining + ' open', disabled: t.spots_remaining < players, t }));
   const course = courses.find((c) => c.id === courseId);
 
@@ -78,11 +82,7 @@ export default function TeeTimes() {
                 <div className="panel">
                   <h2><span className="n">2</span>Who&rsquo;s playing</h2>
                   <p className="sub">The confirmation goes to this email.</p>
-                  <div className="fields">
-                    <label className="field grow">Name<input value={who.name} onChange={(e) => setWho({ ...who, name: e.target.value })} autoComplete="name" /></label>
-                    <label className="field grow">Email<input type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} autoComplete="email" /></label>
-                    <label className="field grow">Phone<input value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} autoComplete="tel" /></label>
-                  </div>
+                  <Details who={who} setWho={setWho} />
                   <Notice result={booked} kind="bad" />
                 </div>
               ) : null}
@@ -102,7 +102,7 @@ export default function TeeTimes() {
           {q && !done ? (
             <>
               {q.payment?.api_bookable !== false ? <button className="btn" disabled={!ready} onClick={book}>Book - pay at the course</button> : null}
-              {ready ? <CardPayment label="Pay now by card" start={{ type: 'tee_time', start: slot.start, players, cart, course_id: cid, name: who.name, email: who.email, phone: who.phone }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
+              {ready ? <CardPayment label="Pay now by card" start={{ type: 'tee_time', start: slot.start, players, cart, course_id: cid, ...p }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
             </>
           ) : null}
         </Summary>

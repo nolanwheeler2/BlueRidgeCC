@@ -4,9 +4,10 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useDevMode } from './DevMode';
 import Mountains from './Mountains';
+import { useMember } from './Member';
 
 const NAV = [
   ['/tee-times', 'Tee Times'], ['/simulators', 'Simulators'], ['/courts', 'Courts'], ['/rooms', 'Stay'],
@@ -27,6 +28,14 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
   const { dev, setDev } = useDevMode();
   const { pathname } = useRouter();
   const [open, setOpen] = useState(false);
+  const { member, ready, signIn, signOut } = useMember();
+  const [menu, setMenu] = useState(false);
+  /* ?signin=cancelled|expired|failed from /api/auth/callback - said once. */
+  const [signinNote, setSigninNote] = useState(null);
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get('signin');
+    if (v) setSigninNote({ cancelled: 'Sign-in was canceled.', expired: 'That sign-in took too long - please try again.', failed: 'Sign-in didn’t go through - please try again.' }[v] || null);
+  }, []);
   return (
     <>
       <Head>
@@ -44,6 +53,21 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
           <nav className={'nav' + (open ? ' open' : '')}>
             {NAV.map(([h, l]) => <Link key={h} href={h} className={pathname === h ? 'on' : ''} onClick={() => setOpen(false)}>{l}</Link>)}
           </nav>
+          {ready ? (member ? (
+            <div className="acct">
+              <button className="acct-btn" onClick={() => setMenu((m) => !m)} aria-expanded={menu}>
+                <span className="avatar sm">{(member.name || member.email || '?').slice(0, 1).toUpperCase()}</span>
+                <span className="acct-name">{(member.name || member.email || '').split(' ')[0]}</span>
+              </button>
+              {menu ? (
+                <div className="acct-menu">
+                  <b>{member.name || 'Signed in'}</b><span>{member.email}</span>
+                  <Link href="/manage" onClick={() => setMenu(false)}>Manage a booking</Link>
+                  <button onClick={async () => { setMenu(false); await signOut(); }}>Sign out</button>
+                </div>
+              ) : null}
+            </div>
+          ) : <button className="btn small ghost signin" onClick={signIn}>Sign in</button>) : null}
           <Link href="/tee-times" className="btn small" style={{ whiteSpace: 'nowrap' }}>Book a tee time</Link>
         </div>
       </header>
@@ -57,6 +81,7 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
           </div>
         </div>
       ) : null)}
+      {signinNote ? <div className="wrap"><div className="notice warn" style={{ marginTop: 16 }}>{signinNote}</div></div> : null}
       <main>{children}</main>
       <footer className="site">
         <div className="wrap">

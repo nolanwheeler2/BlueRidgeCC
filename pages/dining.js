@@ -8,6 +8,8 @@ import Notice from '../components/Notice';
 import Summary from '../components/Summary';
 import Success from '../components/Success';
 import Scene from '../components/Scene';
+import { person } from '../components/Details';
+import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented, TimeGroups } from '../components/Picker';
 import { api, newKey, todayPlus } from '../lib/verdeClient';
 
@@ -23,6 +25,9 @@ export default function Dining() {
   const [who, setWho] = useState({ name: '', email: '', phone: '', occasion: '', requests: '' });
   const [made, setMade] = useState(null);
   const [key, setKey] = useState(newKey());
+  const { member } = useMember();
+  /* A signed-in member's name and email fill in for them (commit 007). */
+  useEffect(() => { if (member) setWho((w) => ({ ...w, name: w.name || member.name || '', email: w.email || member.email || '', phone: w.phone || member.phone || '' })); }, [member]);
 
   useEffect(() => { api('/dining').then((r) => { setAreas(r); if (r.json?.areas?.[0]) setArea(r.json.areas[0].id); }); }, []);
   useEffect(() => { if (!area) return; setTime(null); setMade(null); setKey(newKey()); api('/dining/availability?area_id=' + area + '&date=' + date + '&party_size=' + party).then(setSlots); }, [area, date, party]);

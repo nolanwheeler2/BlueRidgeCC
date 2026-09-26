@@ -9,6 +9,7 @@
 // ============================================
 
 import { verde } from '../../../lib/verdeServer';
+import { readCookie, cookie, MEMBER_COOKIE } from '../../../lib/cookies';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET' && req.method !== 'POST') {
@@ -26,7 +27,11 @@ export default async function handler(req, res) {
     method: req.method,
     body: req.method === 'POST' ? (req.body || {}) : undefined,
     idempotencyKey: req.headers['idempotency-key'] || undefined,
+    memberToken: readCookie(req, MEMBER_COOKIE) || undefined,
   });
+  /* The member's sign-in ended on Verde's side (signed out elsewhere, turned
+     off, expired): forget it here too, so the site shows them signed out. */
+  if (out.status === 401 && out.json?.error?.code === 'member_token_invalid') res.setHeader('Set-Cookie', cookie(MEMBER_COOKIE, '', { maxAge: 0 }));
   if (out.replayed) res.setHeader('Idempotent-Replayed', 'true');
   return res.status(out.status).json(out.json);
 }
