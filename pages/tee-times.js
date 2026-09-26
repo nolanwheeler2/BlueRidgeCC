@@ -9,7 +9,10 @@ import Notice from '../components/Notice';
 import Summary from '../components/Summary';
 import Success from '../components/Success';
 import CardPayment from '../components/CardPayment';
+import { StepBar, DateStrip, Segmented, Toggle, TimeGroups } from '../components/Picker';
 import { api, money, newKey, todayPlus } from '../lib/verdeClient';
+
+const longDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
 export default function TeeTimes() {
   const [courses, setCourses] = useState([]);
@@ -25,69 +28,60 @@ export default function TeeTimes() {
   const [paid, setPaid] = useState(null);
   const [bookKey, setBookKey] = useState(newKey());
 
-  useEffect(() => { api('/club').then((r) => { const cs = r.json?.club?.courses || []; setCourses(cs); if (cs[0]) setCourseId(cs[0].id); }); }, []);
-  const cq = courseId ? '&course_id=' + courseId : '';
-  const reset = () => { setSlot(null); setQuote(null); setBooked(null); setPaid(null); setBookKey(newKey()); };
-  const load = async () => { reset(); setList(await api('/tee-times?date=' + date + cq)); };
-  useEffect(() => { if (courseId || courses.length === 0) load(); }, [date, courseId]); // eslint-disable-line react-hooks/exhaustive-deps
-  const doQuote = async (s, p = players, c = cart) => { setSlot(s); setBooked(null); setQuote(await api('/tee-times/quote', { method: 'POST', body: { start: s.start, players: p, cart: c, course_id: courseId || undefined } })); };
+  useEffect(() => { api('/club').then((r) => { const cs = r.json?.club?.courses || []; setCourses(cs); setCourseId(cs[0]?.id || 'none'); }); }, []);
+  const cid = courseId && courseId !== 'none' ? courseId : undefined;
+  useEffect(() => {
+    if (!courseId) return;
+    setSlot(null); setQuote(null); setBooked(null); setPaid(null); setBookKey(newKey());
+    api('/tee-times?date=' + date + (cid ? '&course_id=' + cid : '')).then(setList);
+  }, [date, courseId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const doQuote = async (s, p = players, c = cart) => { setSlot(s); setBooked(null); setQuote(await api('/tee-times/quote', { method: 'POST', body: { start: s.start, players: p, cart: c, course_id: cid } })); };
   const book = async () => setBooked(await api('/tee-times/bookings', { method: 'POST', key: bookKey, body: {
-    start: slot.start, players, cart, course_id: courseId || undefined, name: who.name, email: who.email, phone: who.phone,
+    start: slot.start, players, cart, course_id: cid, name: who.name, email: who.email, phone: who.phone,
     expected_total_cents: quote?.json?.quote?.total_cents } }));
 
   const q = quote?.json?.quote;
   const done = booked?.json?.booking || paid;
   const release = list?.json?.reason === 'release_in_progress' ? list.json.release : null;
   const ready = who.name && who.email;
+  const times = (list?.json?.tee_times || []).map((t) => ({ key: t.start, iso: t.start, label: t.time, sub: money(t.price_cents) + ' · ' + t.spots_remaining + ' open', disabled: t.spots_remaining < players, t }));
+  const course = courses.find((c) => c.id === courseId);
 
   return (
     <Layout title="Tee Times" eyebrow="Golf" intro="Choose a day and a time. Prices are the club's own, including cart and tax.">
       <div className="wrap booking">
         <div>
+          <StepBar steps={['Choose a time', 'Your details', 'Confirmed']} at={done ? 2 : q ? 1 : 0} />
           {done ? (
             <Success title="You're on the tee sheet" code={booked?.json?.booking?.access_code}>
-              {slot?.time} on {new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}, {players} {players === 1 ? 'player' : 'players'}.
+              {slot?.time} on {longDate(date)}{course ? ' at ' + course.name : ''}, {players} {players === 1 ? 'player' : 'players'}{cart ? ' with a cart' : ''}.
               {booked?.json?.booking ? <> Keep your code to change or cancel.</> : <> Paid by card - your receipt is on its way.</>}
             </Success>
           ) : (
             <>
               <div className="panel">
-                <h2><span className="n">1</span>When</h2>
+                <h2><span className="n">1</span>Choose a time</h2>
                 <p className="sub">Up to two weeks ahead, in the club&rsquo;s time.</p>
-                <div className="fields">
-                  {courses.length > 1 ? (
-                    <label className="field">Course<select value={courseId} onChange={(e) => setCourseId(e.target.value)}>
-                      {courses.map((c) => <option key={c.id} value={c.id}>{c.name}{c.holes ? ' · ' + c.holes + ' holes' : ''}</option>)}
-                    </select></label>
-                  ) : null}
-                  <label className="field">Date<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-                  <label className="field">Players<select value={players} onChange={(e) => { const p = Number(e.target.value); setPlayers(p); if (slot) doQuote(slot, p, cart); }}>{[1, 2, 3, 4].map((n) => <option key={n}>{n}</option>)}</select></label>
-                  <label className="check"><input type="checkbox" checked={cart} onChange={(e) => { setCart(e.target.checked); if (slot) doQuote(slot, players, e.target.checked); }} /> Add a cart</label>
+                {courses.length > 1 ? <div style={{ marginBottom: 16 }}><Segmented label="Course" value={courseId} onChange={setCourseId} options={courses.map((c) => [c.id, c.name + (c.holes ? ' · ' + c.holes : '')])} /></div> : null}
+                <DateStrip value={date} onChange={setDate} />
+                <div className="options">
+                  <Segmented label="Players" value={players} onChange={(p) => { setPlayers(p); if (slot) doQuote(slot, p, cart); }} options={[[1, '1'], [2, '2'], [3, '3'], [4, '4']]} />
+                  <Toggle checked={cart} onChange={(v) => { setCart(v); if (slot) doQuote(slot, players, v); }} title="Add a cart" detail="Recommended on the back nine" />
                 </div>
-                {release ? (
-                  <div className="notice info">Tee times for this date are being released through a line. <a href={release.url} target="_blank" rel="noreferrer">Join the line</a> to get your turn.</div>
-                ) : null}
-                <div className="group">
-                  <div className="pills">
-                    {(list?.json?.tee_times || []).map((t) => (
-                      <button key={t.start} className={'pill' + (slot?.start === t.start ? ' on' : '')} onClick={() => doQuote(t)}>
-                        {t.time}<small>{money(t.price_cents)} · {t.spots_remaining} open</small>
-                      </button>
-                    ))}
-                  </div>
-                  {list && !release && !(list.json?.tee_times || []).length ? <p className="empty">No tee times {list.json?.reason ? '(' + list.json.reason.replace(/_/g, ' ') + ')' : 'this day'}. Try another date.</p> : null}
-                </div>
+                {release ? <div className="notice info" style={{ marginTop: 18 }}>Tee times for {longDate(date)} are being released through a line. <a href={release.url} target="_blank" rel="noreferrer">Join the line</a> to get your turn.</div> : null}
+                {times.length ? <TimeGroups slots={times} value={slot?.start} onPick={(s) => doQuote(s.t)} tz={list?.json?.timezone} /> : null}
+                {list && !release && !times.length && !list.json?.error ? <p className="empty" style={{ marginTop: 16 }}>No tee times on {longDate(date)}. Try another day.</p> : null}
                 <Notice result={list} />
               </div>
 
               {q ? (
                 <div className="panel">
                   <h2><span className="n">2</span>Who&rsquo;s playing</h2>
-                  <p className="sub">We&rsquo;ll send the confirmation here.</p>
+                  <p className="sub">The confirmation goes to this email.</p>
                   <div className="fields">
-                    <label className="field grow">Name<input value={who.name} onChange={(e) => setWho({ ...who, name: e.target.value })} /></label>
-                    <label className="field grow">Email<input type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} /></label>
-                    <label className="field grow">Phone<input value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} /></label>
+                    <label className="field grow">Name<input value={who.name} onChange={(e) => setWho({ ...who, name: e.target.value })} autoComplete="name" /></label>
+                    <label className="field grow">Email<input type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} autoComplete="email" /></label>
+                    <label className="field grow">Phone<input value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} autoComplete="tel" /></label>
                   </div>
                   <Notice result={booked} kind="bad" />
                 </div>
@@ -100,13 +94,15 @@ export default function TeeTimes() {
         </div>
 
         <Summary
-          rows={slot ? [['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })], ['Time', slot.time], ['Players', players], ['Cart', cart ? 'Yes' : 'No']] : []}
+          scene="golf"
+          rows={slot ? [course ? ['Course', course.name] : null, ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })], ['Tee time', slot.time], ['Players', players], ['Holes', q?.holes || slot.holes]] : []}
+          lines={q ? [['Green fees', q.greens_fee_cents], ['Cart', q.cart_fee_cents], ['Service fee', q.service_fee_cents], ['Tax', q.tax_cents]] : []}
           total={q?.total_cents}
           fine={q ? (q.payment?.mode === 'deposit' ? 'The club takes a deposit when you book - pay by card.' : 'Pay at the course, or by card now.') : null}>
           {q && !done ? (
             <>
               {q.payment?.api_bookable !== false ? <button className="btn" disabled={!ready} onClick={book}>Book - pay at the course</button> : null}
-              {ready ? <CardPayment label="Pay now by card" start={{ type: 'tee_time', start: slot.start, players, cart, course_id: courseId || undefined, name: who.name, email: who.email, phone: who.phone }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
+              {ready ? <CardPayment label="Pay now by card" start={{ type: 'tee_time', start: slot.start, players, cart, course_id: cid, name: who.name, email: who.email, phone: who.phone }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
             </>
           ) : null}
         </Summary>

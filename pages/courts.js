@@ -7,7 +7,9 @@ import Result from '../components/Result';
 import Notice from '../components/Notice';
 import Summary from '../components/Summary';
 import Success from '../components/Success';
+import Scene from '../components/Scene';
 import CardPayment from '../components/CardPayment';
+import { StepBar, DateStrip, Segmented, Toggle } from '../components/Picker';
 import { api, newKey, timeIn, todayPlus } from '../lib/verdeClient';
 
 export default function Courts() {
@@ -24,8 +26,10 @@ export default function Courts() {
   const [paid, setPaid] = useState(null);
   const [key, setKey] = useState(newKey());
 
-  const load = async () => { setPick(null); setQuote(null); setBooked(null); setPaid(null); setKey(newKey()); setList(await api('/courts?date=' + date + '&duration=' + duration)); };
-  useEffect(() => { load(); }, [date, duration]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setPick(null); setQuote(null); setBooked(null); setPaid(null); setKey(newKey());
+    api('/courts?date=' + date + '&duration=' + duration).then(setList);
+  }, [date, duration]);
   const choose = async (court, start, p = paddles, b = balls) => { setPick({ court, start }); setBooked(null); setQuote(await api('/courts/quote', { method: 'POST', body: { court_id: court.id, start, duration, paddles: p, balls: b } })); };
   const book = async () => setBooked(await api('/courts/bookings', { method: 'POST', key, body: {
     court_id: pick.court.id, start: pick.start, duration, players, paddles, balls, name: who.name, email: who.email, phone: who.phone,
@@ -34,41 +38,56 @@ export default function Courts() {
   const q = quote?.json?.quote;
   const done = booked?.json?.reservation || paid;
   const ready = who.name && who.email;
+  const courts = list?.json?.courts || [];
 
   return (
-    <Layout title="Courts" eyebrow="Pickleball & tennis" intro="Book a court by the hour. Paddles and balls are here if you need them.">
+    <Layout title="Courts" eyebrow="Pickleball & tennis" intro="Lit courts by the hour. Paddles and balls are here if you need them.">
       <div className="wrap booking">
         <div>
+          <StepBar steps={['Choose a court', 'Your details', 'Confirmed']} at={done ? 2 : q ? 1 : 0} />
           {done ? (
             <Success title="Your court is booked">{pick?.court.name}, {timeIn(pick?.start, tz)} for {duration} minutes.</Success>
           ) : (
             <>
               <div className="panel">
                 <h2><span className="n">1</span>Choose a court and time</h2>
-                <div className="fields">
-                  <label className="field">Date<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
-                  <label className="field">How long<select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>{[60, 90, 120].map((n) => <option key={n} value={n}>{n} minutes</option>)}</select></label>
-                  <label className="field">Players<input type="number" min={1} max={8} value={players} onChange={(e) => setPlayers(Number(e.target.value))} style={{ width: 90 }} /></label>
-                  <label className="field">Rent paddles<input type="number" min={0} max={8} value={paddles} onChange={(e) => { const v = Number(e.target.value); setPaddles(v); if (pick) choose(pick.court, pick.start, v, balls); }} style={{ width: 90 }} /></label>
-                  <label className="check"><input type="checkbox" checked={balls} onChange={(e) => { setBalls(e.target.checked); if (pick) choose(pick.court, pick.start, paddles, e.target.checked); }} /> Balls</label>
+                <p className="sub">Peak hours are marked - they&rsquo;re priced a little higher.</p>
+                <DateStrip value={date} onChange={setDate} />
+                <div className="options">
+                  <Segmented label="How long" value={duration} onChange={setDuration} options={[[60, '1 hr'], [90, '1.5 hr'], [120, '2 hr']]} />
+                  <Segmented label="Players" value={players} onChange={setPlayers} options={[[2, '2'], [4, '4'], [6, '6']]} />
                 </div>
-                {(list?.json?.courts || []).map((c) => (
-                  <div className="group" key={c.id}>
-                    <h3>{c.name}{c.sport ? <span style={{ color: 'var(--muted)', fontWeight: 500 }}> · {c.sport}</span> : null}</h3>
-                    <div className="pills">
-                      {c.starts.map((s) => <button key={s.start} className={'pill' + (pick?.court.id === c.id && pick?.start === s.start ? ' on' : '')} onClick={() => choose(c, s.start)}>{timeIn(s.start, tz)}{s.peak ? <small>Peak</small> : null}</button>)}
-                      {!c.starts.length ? <span className="empty">Fully booked.</span> : null}
+                <div className="options">
+                  <Segmented label="Rent paddles" value={paddles} onChange={(v) => { setPaddles(v); if (pick) choose(pick.court, pick.start, v, balls); }} options={[[0, 'None'], [2, '2'], [4, '4']]} />
+                  <Toggle checked={balls} onChange={(v) => { setBalls(v); if (pick) choose(pick.court, pick.start, paddles, v); }} title="Balls" detail="A fresh can for your session" />
+                </div>
+                <div className="resources">
+                  {courts.map((c) => (
+                    <div key={c.id} className={'resource' + (pick?.court.id === c.id ? ' selected' : '')}>
+                      <div className="art"><Scene kind="court" height={170} /></div>
+                      <div className="body">
+                        <h3>{c.name}</h3>
+                        <div className="tags">
+                          {c.sport ? <span className="tag">{String(c.sport).replace(/_/g, ' ')}</span> : null}
+                          {c.surface ? <span className="tag">{String(c.surface).replace(/_/g, ' ')}</span> : null}
+                          <span className={'tag' + (c.starts.length ? ' good' : '')}>{c.starts.length ? c.starts.length + ' times open' : 'Fully booked'}</span>
+                        </div>
+                        <div className="pills">
+                          {c.starts.map((s) => <button key={s.start} className={'pill' + (pick?.court.id === c.id && pick?.start === s.start ? ' on' : '')} onClick={() => choose(c, s.start)}>{timeIn(s.start, tz)}{s.peak ? <small>Peak</small> : null}</button>)}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
                 <Notice result={list} />
               </div>
               {q ? (
                 <div className="panel">
                   <h2><span className="n">2</span>Your details</h2>
+                  <p className="sub">The confirmation goes to this email.</p>
                   <div className="fields">
-                    <label className="field grow">Name<input value={who.name} onChange={(e) => setWho({ ...who, name: e.target.value })} /></label>
-                    <label className="field grow">Email<input type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} /></label>
+                    <label className="field grow">Name<input value={who.name} onChange={(e) => setWho({ ...who, name: e.target.value })} autoComplete="name" /></label>
+                    <label className="field grow">Email<input type="email" value={who.email} onChange={(e) => setWho({ ...who, email: e.target.value })} autoComplete="email" /></label>
                   </div>
                   <Notice result={booked} kind="bad" />
                 </div>
@@ -79,7 +98,10 @@ export default function Courts() {
           <Result result={quote} title="POST /courts/quote" />
           <Result result={list} title="GET /courts" />
         </div>
-        <Summary rows={pick ? [['Court', pick.court.name], ['Time', timeIn(pick.start, tz)], ['Length', duration + ' min'], paddles ? ['Paddles', paddles] : null, balls ? ['Balls', 'Yes'] : null] : []} total={q?.total_cents} fine={q ? 'Pay at the club, or by card now.' : null}>
+        <Summary scene="court"
+          rows={pick ? [['Court', pick.court.name], ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', timeIn(pick.start, tz)], ['Length', duration + ' min'], ['Players', players]] : []}
+          lines={q ? [['Court', q.court_cents ?? q.subtotal_cents], ['Rentals', q.equipment_cents], ['Tax', q.tax_cents]] : []}
+          total={q?.total_cents} fine={q ? 'Pay at the club, or by card now.' : null}>
           {q && !done ? (
             <>
               <button className="btn" disabled={!ready} onClick={book}>Book - pay at the club</button>
