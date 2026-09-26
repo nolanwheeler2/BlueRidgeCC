@@ -29,7 +29,7 @@ export default function TeeTimes() {
   const [booked, setBooked] = useState(null);
   const [paid, setPaid] = useState(null);
   const [bookKey, setBookKey] = useState(newKey());
-  const { member } = useMember();
+  const { member, accounts } = useMember();
 
   useEffect(() => { api('/club').then((r) => { const cs = r.json?.club?.courses || []; setCourses(cs); setCourseId(cs[0]?.id || 'none'); }); }, []);
   const cid = courseId && courseId !== 'none' ? courseId : undefined;
@@ -39,8 +39,9 @@ export default function TeeTimes() {
     api('/tee-times?date=' + date + (cid ? '&course_id=' + cid : '')).then(setList);
   }, [date, courseId]); // eslint-disable-line react-hooks/exhaustive-deps
   const doQuote = async (s, p = players, c = cart) => { setSlot(s); setBooked(null); setQuote(await api('/tee-times/quote', { method: 'POST', body: { start: s.start, players: p, cart: c, course_id: cid } })); };
-  const book = async () => setBooked(await api('/tee-times/bookings', { method: 'POST', key: bookKey, body: {
+  const book = async (account) => setBooked(await api('/tee-times/bookings', { method: 'POST', key: bookKey, body: {
     start: slot.start, players, cart, course_id: cid, ...person(who, member),
+    ...(account ? { payment: 'member_account', charge_account_id: account } : {}),
     expected_total_cents: quote?.json?.quote?.total_cents } }));
 
   const q = quote?.json?.quote;
@@ -101,7 +102,8 @@ export default function TeeTimes() {
           fine={q ? (q.payment?.mode === 'deposit' ? 'The club takes a deposit when you book - pay by card.' : 'Pay at the course, or by card now.') : null}>
           {q && !done ? (
             <>
-              {q.payment?.api_bookable !== false ? <button className="btn" disabled={!ready} onClick={book}>Book - pay at the course</button> : null}
+              {q.payment?.api_bookable !== false ? <button className="btn" disabled={!ready} onClick={() => book()}>Book - pay at the course</button> : null}
+              {member && accounts.length ? <button className="btn ghost" onClick={() => book(accounts[0].id)}>Charge my member account</button> : null}
               {ready ? <CardPayment label="Pay now by card" start={{ type: 'tee_time', start: slot.start, players, cart, course_id: cid, ...p }} onDone={(j) => setPaid(j.booking)} /> : <p className="fine">Add your name and email to book.</p>}
             </>
           ) : null}
