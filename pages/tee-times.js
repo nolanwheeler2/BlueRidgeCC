@@ -2,13 +2,18 @@
 // GET /tee-times -> POST /tee-times/quote -> POST /tee-times/bookings (pay at
 // the course) or POST /payments (card). A date inside a tee time release
 // comes back with reason "release_in_progress" and the line's link.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import Result from '../components/Result';
 import CardPayment from '../components/CardPayment';
 import { api, money, newKey, todayPlus } from '../lib/verdeClient';
 
 export default function TeeTimes() {
+  /* The club's courses (GET /club) - a club with more than one course picks
+     which one here, and course_id rides on every tee time call (commit 004). */
+  const [courses, setCourses] = useState([]);
+  const [courseId, setCourseId] = useState('');
+  useEffect(() => { api('/club').then((r) => { const cs = r.json?.club?.courses || []; setCourses(cs); if (cs[0]) setCourseId(cs[0].id); }); }, []);
   const [date, setDate] = useState(todayPlus(1));
   const [list, setList] = useState(null);
   const [slot, setSlot] = useState(null);
@@ -19,10 +24,11 @@ export default function TeeTimes() {
   const [booked, setBooked] = useState(null);
   const [bookKey] = useState(newKey());
 
-  const load = async () => { setSlot(null); setQuote(null); setBooked(null); setList(await api('/tee-times?date=' + date)); };
-  const doQuote = async (s) => { setSlot(s); setBooked(null); setQuote(await api('/tee-times/quote', { method: 'POST', body: { start: s.start, players, cart } })); };
+  const cq = courseId ? '&course_id=' + courseId : '';
+  const load = async () => { setSlot(null); setQuote(null); setBooked(null); setList(await api('/tee-times?date=' + date + cq)); };
+  const doQuote = async (s) => { setSlot(s); setBooked(null); setQuote(await api('/tee-times/quote', { method: 'POST', body: { start: s.start, players, cart, course_id: courseId || undefined } })); };
   const book = async () => setBooked(await api('/tee-times/bookings', { method: 'POST', key: bookKey, body: {
-    start: slot.start, players, cart, name: who.name, email: who.email, phone: who.phone,
+    start: slot.start, players, cart, course_id: courseId || undefined, name: who.name, email: who.email, phone: who.phone,
     expected_total_cents: quote?.json?.quote?.total_cents } }));
 
   const tz = list?.json?.timezone;
@@ -31,6 +37,11 @@ export default function TeeTimes() {
     <Layout title="Tee times">
       <h1>Tee times</h1>
       <div className="card row">
+        {courses.length > 1 ? (
+          <label className="field">Course<select value={courseId} onChange={(e) => { setCourseId(e.target.value); setList(null); setSlot(null); setQuote(null); }}>
+            {courses.map((c) => <option key={c.id} value={c.id}>{c.name}{c.holes ? ' (' + c.holes + ' holes)' : ''}</option>)}
+          </select></label>
+        ) : null}
         <label className="field">Date<input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></label>
         <label className="field">Players<select value={players} onChange={(e) => setPlayers(Number(e.target.value))}>{[1, 2, 3, 4].map((n) => <option key={n}>{n}</option>)}</select></label>
         <label className="field"><span>Cart</span><input type="checkbox" checked={cart} onChange={(e) => setCart(e.target.checked)} /></label>
@@ -60,7 +71,7 @@ export default function TeeTimes() {
           <div className="row" style={{ marginTop: 12 }}>
             <button onClick={book} disabled={!who.name || !who.email}>Book - pay at the course</button>
           </div>
-          {who.name && who.email ? <CardPayment start={{ type: 'tee_time', start: slot.start, players, cart, name: who.name, email: who.email, phone: who.phone }} /> : <p className="note">Add a name and email to pay by card.</p>}
+          {who.name && who.email ? <CardPayment start={{ type: 'tee_time', start: slot.start, players, cart, course_id: courseId || undefined, name: who.name, email: who.email, phone: who.phone }} /> : <p className="note">Add a name and email to pay by card.</p>}
         </div>
       ) : null}
       {booked?.json?.booking ? <p className="ok ui">Booked. Access code {booked.json.booking.access_code} - <a href="/manage">manage it</a>.</p> : null}

@@ -27,6 +27,7 @@ export default function Home() {
         <h1>{club?.name || 'Blue Ridge CC'}</h1>
         <p>A test website for Verde&rsquo;s Booking API. Every page here books through the API, the way a club&rsquo;s own site or app would.</p>
         {club ? <p className="ui">{club.location || ''}{club.timezone ? ' - times in ' + club.timezone : ''}</p> : null}
+        {club?.courses?.length ? <p className="ui">Courses: {club.courses.map((c) => c.name + (c.holes ? ' (' + c.holes + ')' : '')).join(', ')}</p> : null}
       </div>
       <h2>Book</h2>
       <div className="grid">
