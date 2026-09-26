@@ -9,13 +9,14 @@ import Result from '../components/Result';
 import Mountains from '../components/Mountains';
 import Scene from '../components/Scene';
 import EventCard from '../components/EventCard';
-import { api } from '../lib/verdeClient';
+import { api, money } from '../lib/verdeClient';
 
 const AMENITIES = [
   ['tee_times', '/tee-times', 'Tee Times', 'golf', 'Eighteen holes along the ridge, with views into three states from the back nine.', ['18 holes', 'Carts', 'Twilight rates']],
   ['simulators', '/simulators', 'Simulators', 'sim', 'Play Pebble Beach at lunch. Launch-monitor bays by the hour, rain or shine.', ['By the hour', 'Up to 6 players']],
   ['courts', '/courts', 'Courts', 'court', 'Lit pickleball and tennis courts, with paddles and balls to rent.', ['Pickleball', 'Tennis', 'Rentals']],
   ['lodging', '/rooms', 'Stay', 'room', 'Cottages above the eighteenth green, for the night after the round.', ['Cottages', 'Breakfast']],
+  ['packages', '/packages', 'Stay and Play', 'stayplay', 'A cottage, your rounds and dinner on us - one price, booked in one go.', ['Room + golf', 'One price']],
   ['dining', '/dining', 'Dining', 'dining', 'The Grill and the terrace, from breakfast before your round to supper at last light.', ['The Grill', 'Terrace']],
   ['tournaments', '/tournaments', 'Events', 'events', 'Scrambles, the member-guest and the season finale - enter online.', ['Scrambles', 'Leagues']],
   ['private_events', '/private-events', 'Private Events', 'venue', 'Weddings, outings and meetings with the mountains behind you.', ['Weddings', 'Outings', 'Meetings']],
@@ -30,7 +31,12 @@ const VOICES = [
 export default function Home() {
   const [club, setClub] = useState(null);
   const [events, setEvents] = useState(null);
-  useEffect(() => { api('/club').then(setClub); api('/tournaments').then(setEvents); }, []);
+  /* Live packages (commit 011): the Stay and Play card shows the lowest
+     price on offer, and the club's own package names. */
+  const [pkgs, setPkgs] = useState(null);
+  useEffect(() => { api('/club').then(setClub); api('/tournaments').then(setEvents); api('/packages').then(setPkgs); }, []);
+  const packages = pkgs?.json?.packages || [];
+  const fromCents = packages.length ? Math.min(...packages.map((p) => p.price.base_cents)) : null;
   const c = club?.json?.club;
   const upcoming = (events?.json?.tournaments || []).slice(0, 3);
   const holes = (c?.courses || []).reduce((s, x) => s + (x.holes || 0), 0);
@@ -61,7 +67,12 @@ export default function Home() {
           <p className="lead">Pick a time, see the club&rsquo;s price, and it&rsquo;s yours - paid at the club or by card.</p>
           <div className="amenities">
             {AMENITIES.map(([avenue, href, label, scene, sub, facts]) => {
-              const off = c?.avenues && c.avenues[avenue] === false;
+              /* Packages: open when the club sells them and has one live. */
+              const off = (c?.avenues && c.avenues[avenue] === false) || (avenue === 'packages' && pkgs && !packages.length);
+              if (avenue === 'packages') {
+                if (packages.length === 1) sub = packages[0].name + (packages[0].description ? ' - ' + packages[0].description : '');
+                if (fromCents !== null) facts = [...facts, 'From ' + money(fromCents)];
+              }
               return (
                 <Link key={href} href={href} className="amenity" style={off ? { opacity: .6 } : undefined}>
                   <div className="scene"><Scene kind={scene} height={120} /></div>

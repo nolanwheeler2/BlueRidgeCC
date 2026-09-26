@@ -54,6 +54,18 @@ export default function Scene({ kind, height }) {
       <path d="M0 96 H320 V120 H0Z" fill="#4f6b54" />
     </Frame>
   );
+  /* Stay and play (commit 011): the cottage on the left, a green and its flag
+     on the right, at golden hour. */
+  if (kind === 'stayplay') return (
+    <Frame sky="dawn" height={height}><Hills c1="#a8a18f" c2="#7f8f7a" />
+      <path d="M0 96 C90 90 200 94 320 88 V120 H0Z" fill="#5f7f62" />
+      <path d="M46 96 V70 L86 48 L126 70 V96Z" fill="#efe6d6" /><path d="M38 72 L86 44 L134 72" stroke="#7a4b32" strokeWidth="5" fill="none" strokeLinejoin="round" />
+      <rect x="77" y="78" width="18" height="18" fill="#7a4b32" /><rect x="56" y="74" width="12" height="10" fill="#f3d9b1" /><rect x="104" y="74" width="12" height="10" fill="#f3d9b1" />
+      <ellipse cx="240" cy="97" rx="44" ry="6" fill="#88a98a" />
+      <path d="M244 97 V60" stroke="#f7f3ea" strokeWidth="2" /><path d="M244 60 L266 66 L244 72Z" fill="#b5794a" />
+      <circle cx="180" cy="104" r="3" fill="#fff" />
+    </Frame>
+  );
   if (kind === 'dining') return (
     <Frame sky="dusk" height={height}><Hills c1="#9a8f9e" c2="#6f6f8a" />
       <rect x="0" y="92" width="320" height="28" fill="#6a4a36" />

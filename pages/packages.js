@@ -99,7 +99,7 @@ export default function Packages() {
                 <div className="resources">
                   {packages.map((x) => (
                     <div key={x.id} className={'resource' + (pkg?.id === x.id ? ' selected' : '')}>
-                      <div className="art">{x.image_url ? <img src={x.image_url} alt="" /> : <Scene kind="room" height={190} />}</div>
+                      <div className="art">{x.image_url ? <img src={x.image_url} alt="" /> : <Scene kind="stayplay" height={190} />}</div>
                       <div className="body">
                         <h3>{x.name}{x.featured ? <span className="tag good" style={{ marginLeft: 8 }}>Featured</span> : null}</h3>
                         {x.description ? <p>{x.description}</p> : null}
@@ -156,7 +156,7 @@ export default function Packages() {
           <Result result={avail} title="GET /packages/{id}/availability" />
           <Result result={list} title="GET /packages" />
         </div>
-        <Summary title="Your package" scene="room"
+        <Summary title="Your package" scene="stayplay"
           rows={pkg ? [['Package', pkg.name], ['Arrive', arrival ? fmt(arrival) : '-'], ['Guests', guests], ...(a?.quote.nights ? [['Leave', fmt(a.quote.departure)]] : []), ...picked.map((s, i) => ['Tee time ' + (i + 1), new Date(s).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' })])] : []}
           lines={a ? [[pkg.name + ', ' + guests + (guests === 1 ? ' guest' : ' guests'), a.quote.total_cents]] : []}
           total={a?.quote.total_cents}
