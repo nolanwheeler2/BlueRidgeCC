@@ -299,3 +299,8 @@ footer.site .base { border-top: 1px solid rgba(255,255,255,.14); margin-top: 32p
 
 /* Phones keep the narrower gutter (commit 004). */
 @media (max-width: 600px) { .wrap, .hero .content { padding-left: 20px; padding-right: 20px; } }
+
+/* Nothing wider than its card (commit 005): a wide row of days or times
+   scrolls inside its box instead of pushing the page past its edge. */
+.resource > *, .panel, .booking > * { min-width: 0; }
+.panel { overflow-x: clip; }

@@ -63,7 +63,8 @@ function YourBookings() {
     const kind = TYPE[b.type];
     const mayCancel = kind && b.role === 'host' && !canceled && upcoming.includes(b);
     return (
-      <div key={b.type + b.id} className="resource" style={{ gridTemplateColumns: '1fr', marginTop: 12 }}>
+      <div key={b.type + b.id}>
+      <div className="resource" style={{ gridTemplateColumns: 'minmax(0, 1fr)', marginTop: 12 }}>
         <div className="body">
           <h3>{TYPE_LABEL[b.type] || 'Booking'} &middot; {when(b.start)}</h3>
           <div className="tags">
@@ -92,8 +93,11 @@ function YourBookings() {
               }}>Cancel</button>
             ) : null}
           </div>
-          {changing === b.id ? <ChangeTeeTime booking={b} onClose={() => setChanging(null)} onDone={async () => { setChanging(null); await load(past); }} /> : null}
         </div>
+      </div>
+      {/* The change panel sits under its booking at full width, not squeezed
+          inside the card (commit 005). */}
+      {changing === b.id ? <ChangeTeeTime booking={b} onClose={() => setChanging(null)} onDone={async () => { setChanging(null); await load(past); }} /> : null}
       </div>
     );
   };
@@ -114,7 +118,7 @@ function YourBookings() {
           <h2>Invitations</h2>
           <p className="sub">Tee times you&rsquo;ve been invited to. Your place is held until the time shown.</p>
           {invites.map((v) => (
-            <div key={v.player_id} className="resource" style={{ gridTemplateColumns: '1fr', marginTop: 12 }}>
+            <div key={v.player_id} className="resource" style={{ gridTemplateColumns: 'minmax(0, 1fr)', marginTop: 12 }}>
               <div className="body">
                 <h3>{v.host} invited you &middot; {when(v.start)}</h3>
                 <div className="tags">
@@ -189,7 +193,7 @@ export default function Manage() {
             <button className="btn" disabled={!id || canceled} onClick={async () => { if (window.confirm('Cancel this ' + KINDS[kind][0].toLowerCase() + '?')) setCancel(await api(KINDS[kind][1](id), { method: 'POST', body: {} })); }}>Cancel it</button>
           </div>
           {b && kind === 'pkg' ? (
-            <div className="resource" style={{ gridTemplateColumns: '1fr', marginTop: 18 }}>
+            <div className="resource" style={{ gridTemplateColumns: 'minmax(0, 1fr)', marginTop: 18 }}>
               <div className="body">
                 <h3>{b.package?.name || 'Package'}, {b.guests} {b.guests === 1 ? 'guest' : 'guests'}, arriving {new Date(b.arrival + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
                 <div className="tags">
@@ -204,7 +208,7 @@ export default function Manage() {
               </div>
             </div>
           ) : b ? (
-            <div className="resource" style={{ gridTemplateColumns: '1fr', marginTop: 18 }}>
+            <div className="resource" style={{ gridTemplateColumns: 'minmax(0, 1fr)', marginTop: 18 }}>
               <div className="body">
                 <h3>{b.players} {b.players === 1 ? 'player' : 'players'}{b.start ? ', ' + new Date(b.start).toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}</h3>
                 <div className="tags">
