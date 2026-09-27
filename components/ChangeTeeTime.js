@@ -29,8 +29,10 @@ export default function ChangeTeeTime({ booking, onDone, onClose }) {
   const [applied, setApplied] = useState(null);
   const [key] = useState(newKey());
 
-  useEffect(() => { api('/tee-times?date=' + date).then(setList); }, [date]);
-  const body = () => ({ start, cart, ...groupFields(group) });
+  /* The round's own course (commit 006): its times, and priced at its rates. */
+  const cid = booking.course_id || undefined;
+  useEffect(() => { api('/tee-times?date=' + date + (cid ? '&course_id=' + cid : '')).then(setList); }, [date]); // eslint-disable-line react-hooks/exhaustive-deps
+  const body = () => ({ start, cart, ...(cid ? { course_id: cid } : {}), ...groupFields(group) });
   useEffect(() => {
     if (!start) return;
     const t = setTimeout(async () => setQuote(await api('/bookings/' + booking.id + '/change', { method: 'POST', body: { action: 'quote', ...body() } })), 250);
