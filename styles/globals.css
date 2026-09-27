@@ -284,3 +284,14 @@ footer.site .base { border-top: 1px solid rgba(255,255,255,.14); margin-top: 32p
 .checks { list-style: none; padding: 0; margin: 8px 0 4px; display: grid; gap: 4px; }
 .checks li { position: relative; padding-left: 24px; font-size: 14.5px; color: var(--ink, #1f2a33); }
 .checks li::before { content: ''; position: absolute; left: 4px; top: 5px; width: 9px; height: 5px; border-left: 2px solid var(--ok); border-bottom: 2px solid var(--ok); transform: rotate(-45deg); }
+
+/* Who's playing - guests and invited members (commit 003). */
+.group-players { display: grid; gap: 8px; }
+.gp-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.gp-name { font-weight: 600; flex: 1; }
+.gp-input { flex: 1; min-width: 160px; border: 0; font: inherit; outline: none; background: transparent; }
+.link { border: 0; background: none; color: var(--navy); font: 600 13px var(--sans); cursor: pointer; padding: 0; }
+.gp-search { flex-basis: 100%; display: grid; gap: 6px; margin-top: 4px; }
+.gp-search input { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font: inherit; }
+.gp-found { text-align: left; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; background: #fff; font: inherit; cursor: pointer; display: flex; justify-content: space-between; }
+.gp-found span { color: var(--muted); font-size: 13px; }

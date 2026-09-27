@@ -13,6 +13,8 @@
 // Cancellation fees are reported, never waived.
 import { useEffect, useState } from 'react';
 import { useMember } from '../components/Member';
+import ChangeTeeTime from '../components/ChangeTeeTime';
+import CardPayment from '../components/CardPayment';
 import Layout from '../components/Layout';
 import Result from '../components/Result';
 import Notice from '../components/Notice';
@@ -45,6 +47,9 @@ function YourBookings() {
   const [past, setPast] = useState(false);
   const [mine, setMine] = useState(null);
   const [cancel, setCancel] = useState(null);
+  const [changing, setChanging] = useState(null);
+  const [answer, setAnswer] = useState(null);
+  const [payingFor, setPayingFor] = useState(null);
   const load = async (withPast) => setMine(await api('/members/bookings' + (withPast ? '?past=1' : '')));
   useEffect(() => { void load(past); }, [past]);
   const list = mine?.json?.bookings || [];
@@ -76,7 +81,8 @@ function YourBookings() {
             </p>
           ) : null}
           <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-            {b.manage_url ? <a className="btn ghost small" href={b.manage_url} target="_blank" rel="noreferrer">Change or view</a> : null}
+            {b.type === 'tee_time' && b.role === 'host' && !canceled && upcoming.includes(b)
+              ? <button className="btn ghost small" onClick={() => setChanging(changing === b.id ? null : b.id)}>{changing === b.id ? 'Close' : 'Change time or players'}</button> : null}
             {mayCancel ? (
               <button className="btn small" onClick={async () => {
                 if (!window.confirm('Cancel this ' + (TYPE_LABEL[b.type] || 'booking').toLowerCase() + '?')) return;
@@ -86,10 +92,20 @@ function YourBookings() {
               }}>Cancel</button>
             ) : null}
           </div>
+          {changing === b.id ? <ChangeTeeTime booking={b} onClose={() => setChanging(null)} onDone={async () => { setChanging(null); await load(past); }} /> : null}
         </div>
       </div>
     );
   };
+
+  /* Answering an invitation, here (POST /members/invitations/{id}). */
+  const respond = async (v, action, payment) => {
+    const r = await api('/members/invitations/' + v.player_id, { method: 'POST', body: { action, ...(payment ? { payment } : {}) } });
+    setAnswer(r);
+    if (r.ok) await load(past);
+  };
+  const acceptLabel = (v, m) => (v.share_cents === 0 ? 'Accept'
+    : m === 'member_account' ? 'Accept · charge my member account' : m === 'card' ? 'Accept · pay ' + money(v.share_cents) + ' by card' : 'Accept · pay at the club');
 
   return (
     <>
@@ -106,10 +122,23 @@ function YourBookings() {
                   <span className="tag">{v.share_cents > 0 ? 'Your share ' + money(v.share_cents) : 'Nothing to pay'}</span>
                   {v.held_until ? <span className="tag">Held until {when(v.held_until)}</span> : null}
                 </div>
-                <div style={{ marginTop: 12 }}><a className="btn small" href={v.manage_url} target="_blank" rel="noreferrer">Accept or decline</a></div>
+                {payingFor === v.player_id ? (
+                  <div style={{ marginTop: 12 }}>
+                    <CardPayment label={'Pay ' + money(v.share_cents)} start={{ type: 'tee_invite', player_id: v.player_id }} onDone={async () => { setPayingFor(null); await load(past); }} />
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+                    {(v.payment_methods?.length ? v.payment_methods : ['pay_at_course']).map((m) => (
+                      <button key={m} className="btn small" onClick={() => (m === 'card' && v.share_cents > 0 ? setPayingFor(v.player_id) : respond(v, 'accept', m))}>{acceptLabel(v, m)}</button>
+                    ))}
+                    <button className="btn ghost small" onClick={() => respond(v, 'decline')}>Decline</button>
+                  </div>
+                )}
               </div>
             </div>
           ))}
+          {answer?.ok ? <div className="notice info">{answer.json?.answered === 'accept' ? 'You’re in. The host has been told.' : 'Declined. The host has been told.'}</div> : null}
+          <Notice result={answer} kind="bad" />
         </div>
       ) : null}
 
