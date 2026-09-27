@@ -1,4 +1,8 @@
 // pages/manage.js
+// A signed-in member's bookings, listed for them (GET /members/bookings -
+// no reference needed), each cancellable here, and tee time invitations
+// waiting for an answer. A guest looks theirs up by reference, as before.
+//
 // Look up and cancel a booking:
 //   tee times   GET /bookings/{id}, POST /bookings/{id}/cancel
 //   simulators  POST /simulators/reservations/{id}/cancel
@@ -7,7 +11,8 @@
 //   rooms       POST /lodging/reservations/{id}/cancel
 //   packages    GET /packages/bookings/{id}, POST /packages/bookings/{id}/cancel
 // Cancellation fees are reported, never waived.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useMember } from '../components/Member';
 import Layout from '../components/Layout';
 import Result from '../components/Result';
 import Notice from '../components/Notice';
@@ -24,7 +29,109 @@ const KINDS = {
 };
 const LOOKUP = { tee: (id) => '/bookings/' + id, pkg: (id) => '/packages/bookings/' + id };
 
+/* GET /members/bookings types -> the cancel paths above. */
+const TYPE = { tee_time: 'tee', simulator: 'sim', court: 'court', dining: 'dining', lodging: 'room' };
+const TYPE_LABEL = { tee_time: 'Tee time', simulator: 'Simulator', court: 'Court', dining: 'Dining', lodging: 'Room' };
+const when = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso.length === 10 ? iso + 'T12:00:00' : iso);
+  return iso.length === 10
+    ? d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+    : d.toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+};
+
+/* The member's own bookings and invitations - no reference needed. */
+function YourBookings() {
+  const [past, setPast] = useState(false);
+  const [mine, setMine] = useState(null);
+  const [cancel, setCancel] = useState(null);
+  const load = async (withPast) => setMine(await api('/members/bookings' + (withPast ? '?past=1' : '')));
+  useEffect(() => { void load(past); }, [past]);
+  const list = mine?.json?.bookings || [];
+  const invites = mine?.json?.invitations || [];
+  const now = Date.now();
+  const upcoming = list.filter((b) => !b.start || new Date(b.start.length === 10 ? b.start + 'T23:59:59' : b.start).getTime() >= now);
+  const earlier = list.filter((b) => !upcoming.includes(b));
+
+  const row = (b) => {
+    const canceled = String(b.status || '').startsWith('cancel');
+    const kind = TYPE[b.type];
+    const mayCancel = kind && b.role === 'host' && !canceled && upcoming.includes(b);
+    return (
+      <div key={b.type + b.id} className="resource" style={{ gridTemplateColumns: '1fr', marginTop: 12 }}>
+        <div className="body">
+          <h3>{TYPE_LABEL[b.type] || 'Booking'} &middot; {when(b.start)}</h3>
+          <div className="tags">
+            <span className={'tag' + (canceled ? '' : ' good')}>{canceled ? 'Canceled' : b.role === 'player' ? 'You’re playing' : 'Confirmed'}</span>
+            {b.course ? <span className="tag">{b.course}</span> : null}
+            {b.holes ? <span className="tag">{b.holes} holes</span> : null}
+            {b.party ? <span className="tag">{b.party} {b.type === 'lodging' ? 'guests' : 'people'}</span> : null}
+            {b.total_cents != null ? <span className="tag">{money(b.total_cents)}</span> : null}
+            {b.share_cents != null ? <span className="tag">Your share {money(b.share_cents)}</span> : null}
+            {b.access_code ? <span className="tag">Code {b.access_code}</span> : null}
+          </div>
+          {b.players?.length ? (
+            <p style={{ margin: '8px 0 0', fontSize: 14 }}>
+              {b.players.map((p) => (p.is_me ? 'You' : p.name) + (p.invited ? ' (invited)' : '')).join(', ')}
+            </p>
+          ) : null}
+          <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
+            {b.manage_url ? <a className="btn ghost small" href={b.manage_url} target="_blank" rel="noreferrer">Change or view</a> : null}
+            {mayCancel ? (
+              <button className="btn small" onClick={async () => {
+                if (!window.confirm('Cancel this ' + (TYPE_LABEL[b.type] || 'booking').toLowerCase() + '?')) return;
+                const r = await api(KINDS[kind][1](b.id), { method: 'POST', body: {} });
+                setCancel(r);
+                if (r.ok) await load(past);
+              }}>Cancel</button>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <>
+      {invites.length ? (
+        <div className="panel">
+          <h2>Invitations</h2>
+          <p className="sub">Tee times you&rsquo;ve been invited to. Your place is held until the time shown.</p>
+          {invites.map((v) => (
+            <div key={v.player_id} className="resource" style={{ gridTemplateColumns: '1fr', marginTop: 12 }}>
+              <div className="body">
+                <h3>{v.host} invited you &middot; {when(v.start)}</h3>
+                <div className="tags">
+                  {v.course ? <span className="tag">{v.course}</span> : null}
+                  <span className="tag">{v.share_cents > 0 ? 'Your share ' + money(v.share_cents) : 'Nothing to pay'}</span>
+                  {v.held_until ? <span className="tag">Held until {when(v.held_until)}</span> : null}
+                </div>
+                <div style={{ marginTop: 12 }}><a className="btn small" href={v.manage_url} target="_blank" rel="noreferrer">Accept or decline</a></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="panel">
+        <h2>Your bookings</h2>
+        <p className="sub">Everything you have at the club, soonest first.</p>
+        {!mine ? <p className="sub">Loading&hellip;</p> : null}
+        {mine && !mine.ok ? <Notice result={mine} kind="bad" /> : null}
+        {mine?.ok && !upcoming.length ? <p className="sub" style={{ margin: 0 }}>Nothing coming up. Book a tee time, a bay or a table from the menu above.</p> : null}
+        {upcoming.map(row)}
+        {past && earlier.length ? <><h3 style={{ margin: '22px 0 0', fontSize: 15 }}>Earlier</h3>{earlier.map(row)}</> : null}
+        <button className="btn ghost small" style={{ marginTop: 16 }} onClick={() => setPast(!past)}>{past ? 'Hide past bookings' : 'Show the last 90 days'}</button>
+        {cancel?.ok ? <div className="notice info">{cancel.json?.already_cancelled ? 'That was already canceled.' : ('Canceled.' + (cancel.json?.fee_cents > 0 ? ' A late fee of ' + money(cancel.json.fee_cents) + ' applies.' : ''))}</div> : null}
+        <Notice result={cancel} kind="bad" />
+      </div>
+      <Result result={mine} title="GET /members/bookings" />
+    </>
+  );
+}
+
 export default function Manage() {
+  const { member, ready } = useMember();
   const [kind, setKind] = useState('tee');
   const [id, setId] = useState('');
   const [look, setLook] = useState(null);
@@ -32,16 +139,18 @@ export default function Manage() {
   const b = look?.json?.booking;
   const canceled = b && String(b.status).startsWith('cancel');
   return (
-    <Layout title="Manage a Booking" intro="Look up or cancel a booking with the reference in your confirmation.">
+    <Layout title={member ? 'Your Bookings' : 'Manage a Booking'}
+      intro={member ? 'Everything you have at the club, and any invitations waiting for you.' : 'Look up or cancel a booking with the reference in your confirmation.'}>
       <div className="wrap" style={{ padding: '36px 24px 72px', maxWidth: 860 }}>
         <div className="info-grid">
           <div className="info"><b>Changing plans?</b><span>Cancel here, then book a new time - it only takes a minute.</span></div>
           <div className="info"><b>Cancellation fees</b><span>Some bookings close to the time carry a fee; you&rsquo;ll see it before anything is charged.</span></div>
           <div className="info"><b>Need help?</b><span>Call the club and we&rsquo;ll sort it out.</span></div>
         </div>
+        {ready && member ? <YourBookings /> : null}
         <div className="panel">
-          <h2>Find your booking</h2>
-          <p className="sub">Choose what you booked and paste its reference.</p>
+          <h2>{member ? 'Booked as a guest?' : 'Find your booking'}</h2>
+          <p className="sub">{member ? 'A booking made without signing in: choose what it was and paste the reference from its confirmation.' : 'Choose what you booked and paste its reference. Members: sign in to see all of yours without one.'}</p>
           <Segmented value={kind} onChange={(k) => { setKind(k); setLook(null); setCancel(null); }} options={Object.entries(KINDS).map(([v, [l]]) => [v, l])} />
           <div className="fields" style={{ marginTop: 16 }}>
             <label className="field grow">Reference<input value={id} onChange={(e) => setId(e.target.value.trim())} placeholder="00000000-0000-0000-0000-000000000000" /></label>

@@ -62,7 +62,7 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
               {menu ? (
                 <div className="acct-menu">
                   <b>{member.name || 'Signed in'}</b><span>{member.email}</span>
-                  <Link href="/manage" onClick={() => setMenu(false)}>Manage a booking</Link>
+                  <Link href="/manage" onClick={() => setMenu(false)}>Your bookings</Link>
                   <button onClick={async () => { setMenu(false); await signOut(); }}>Sign out</button>
                 </div>
               ) : null}
