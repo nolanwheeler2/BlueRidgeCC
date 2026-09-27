@@ -13,7 +13,8 @@
 html, body { margin: 0; padding: 0; background: var(--cream); color: var(--ink); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
 a { color: var(--navy-2); }
 img { max-width: 100%; }
-.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+/* Wider (commit 004): more room for the booking screens and their details. */
+.wrap { max-width: 1320px; margin: 0 auto; padding: 0 32px; }
 
 /* Header */
 .topbar { position: sticky; top: 0; z-index: 20; background: rgba(250, 246, 239, .92); backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
@@ -52,7 +53,7 @@ img { max-width: 100%; }
 .hero .art { position: absolute; inset: 0; width: 100%; height: 100%; }
 .hero .shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,34,52,.62) 0%, rgba(20,34,52,.28) 55%, rgba(20,34,52,0) 80%), linear-gradient(180deg, rgba(20,34,52,.1) 0%, rgba(20,34,52,.5) 100%); }
 .hero h1, .hero p, .hero .eyebrow { text-shadow: 0 1px 18px rgba(10, 20, 32, .35); }
-.hero .content { position: relative; padding: 0 24px 72px; max-width: 1120px; margin: 0 auto; width: 100%; }
+.hero .content { position: relative; padding: 0 32px 72px; max-width: 1320px; margin: 0 auto; width: 100%; }
 .eyebrow { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; opacity: .85; }
 .hero h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(40px, 6vw, 72px); line-height: 1.02; margin: 12px 0 14px; max-width: 760px; }
 .hero p { font-size: 18px; line-height: 1.6; max-width: 560px; opacity: .92; margin: 0 0 26px; }
@@ -88,7 +89,7 @@ section.block.alt { background: var(--sand); }
 .event .what span { color: var(--muted); font-size: 13.5px; }
 
 /* Booking layout */
-.booking { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; padding-top: 36px; padding-bottom: 72px; }
+.booking { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 36px; align-items: start; padding-top: 36px; padding-bottom: 72px; }
 @media (max-width: 920px) { .booking { grid-template-columns: minmax(0, 1fr); } }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; margin-bottom: 18px; }
 .panel h2 { font-family: var(--serif); font-weight: 600; font-size: 24px; color: var(--navy); margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
@@ -295,3 +296,6 @@ footer.site .base { border-top: 1px solid rgba(255,255,255,.14); margin-top: 32p
 .gp-search input { border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; font: inherit; }
 .gp-found { text-align: left; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; background: #fff; font: inherit; cursor: pointer; display: flex; justify-content: space-between; }
 .gp-found span { color: var(--muted); font-size: 13px; }
+
+/* Phones keep the narrower gutter (commit 004). */
+@media (max-width: 600px) { .wrap, .hero .content { padding-left: 20px; padding-right: 20px; } }

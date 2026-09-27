@@ -170,7 +170,7 @@ export default function Manage() {
   return (
     <Layout title={member ? 'Your Bookings' : 'Manage a Booking'}
       intro={member ? 'Everything you have at the club, and any invitations waiting for you.' : 'Look up or cancel a booking with the reference in your confirmation.'}>
-      <div className="wrap" style={{ padding: '36px 24px 72px', maxWidth: 860 }}>
+      <div className="wrap" style={{ paddingTop: 36, paddingBottom: 72, maxWidth: 1080 }}>
         <div className="info-grid">
           <div className="info"><b>Changing plans?</b><span>Cancel here, then book a new time - it only takes a minute.</span></div>
           <div className="info"><b>Cancellation fees</b><span>Some bookings close to the time carry a fee; you&rsquo;ll see it before anything is charged.</span></div>
