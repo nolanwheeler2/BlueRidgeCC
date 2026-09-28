@@ -32,12 +32,13 @@ function Arrow() {
 export default function Home() {
   const { member, signIn } = useMember();
   const { tz } = useClub();
-  const [club, setClub] = useState(null);
+
   const [events, setEvents] = useState(null);
   const [pkgs, setPkgs] = useState(null);
-  useEffect(() => { api('/club').then(setClub); api('/tournaments').then(setEvents); api('/packages').then(setPkgs); }, []);
+  /* The club from the site's club (commit 029), not a second request for it. */
+  useEffect(() => { api('/tournaments').then(setEvents); api('/packages').then(setPkgs); }, []);
 
-  const c = club?.json?.club;
+  const { club: c } = useClub();
   const packages = pkgs?.json?.packages || [];
   const fromCents = packages.length ? Math.min(...packages.map((p) => p.price?.base_cents ?? Infinity)) : null;
   const upcoming = (events?.json?.tournaments || []).slice(0, 4);

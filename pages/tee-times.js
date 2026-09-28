@@ -23,10 +23,10 @@ import CardPayment from '../components/CardPayment';
 import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented, TimeGroups } from '../components/Picker';
-import { api, money, newKey } from '../lib/verdeClient';
+import { api, money, newKey, apiRemembered, remembered, prefetch, forget } from '../lib/verdeClient';
 import GroupPlayers, { groupFields } from '../components/GroupPlayers';
 import { useClub, useOpenDay } from '../components/Club';
-import { clubToday, fmtDay } from '../lib/clubTime';
+import { addDays, clubToday, fmtDay } from '../lib/clubTime';
 
 const longDate = (d) => fmtDay(d, { weekday: 'long', month: 'long', day: 'numeric' });
 
@@ -51,13 +51,33 @@ export default function TeeTimes() {
   const [group, setGroup] = useState([{ kind: 'guest', name: '' }]);
   const memberBody = () => ({ ...groupFields(group), cart });
 
-  useEffect(() => { api('/club').then((r) => { const cs = r.json?.club?.courses || []; setCourses(cs); setCourseId(cs[0]?.id || 'none'); }); }, []);
+  /* The club's courses from the site's club (commit 029), not a second
+     request for it - which the tee times had to wait for. */
+  const { club: siteClub } = useClub();
+  /* Once something's booked, the remembered lists are stale: forget them, so
+     the time just taken never shows as open (commit 029). */
+  useEffect(() => { if (booked?.ok || paid) forget('/tee-times'); }, [booked, paid]);
+  useEffect(() => {
+    if (!siteClub) return;
+    const cs = siteClub.courses || [];
+    setCourses(cs);
+    setCourseId((prev) => prev || cs[0]?.id || 'none');
+  }, [siteClub]);
   const cid = courseId && courseId !== 'none' ? courseId : undefined;
   useEffect(() => {
     if (!courseId || !date) return;
     setSlot(null); setQuote(null); setBooked(null); setPaid(null); setBookKey(newKey());
-    setList(null);
-    api('/tee-times?date=' + date + (cid ? '&course_id=' + cid : '')).then(setList);
+    /* A day already seen shows at once while it's asked for again; the next
+       day is fetched ahead, so moving forward is instant (commit 029). */
+    const path = (d) => '/tee-times?date=' + d + (cid ? '&course_id=' + cid : '');
+    setList(remembered(path(date)));
+    let live = true;
+    apiRemembered(path(date)).then((r) => {
+      if (!live) return;
+      setList(r);
+      prefetch(path(addDays(date, 1)));
+    });
+    return () => { live = false; };
   }, [date, courseId]); // eslint-disable-line react-hooks/exhaustive-deps
   const doQuote = async (s, p = players, c = cart, g = group) => { setSlot(s); setBooked(null); setQuote(await api('/tee-times/quote', { method: 'POST',
     body: member ? { start: s.start, players: g.length + 1, cart: c, course_id: cid, ...groupFields(g) } : { start: s.start, players: p, cart: c, course_id: cid } })); };

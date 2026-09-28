@@ -18,13 +18,26 @@ import { DEFAULT_TZ, addDays, clubToday } from '../lib/clubTime';
 
 const Ctx = createContext({ club: null, tz: DEFAULT_TZ, ready: false });
 
+/* REMEMBERED FOR THE VISIT (commit 029). The club's details rarely change,
+   so they're kept for the browser tab: a refresh or the next page draws from
+   memory at once, then Verde is asked again quietly and anything new replaces
+   it. Every page reads the club from here - none fetches it again. */
+const CLUB_MEMORY = 'verde.club.v1';
+function remembered() {
+  try { const j = JSON.parse(sessionStorage.getItem(CLUB_MEMORY) || 'null'); return j && j.club ? j.club : null; } catch { return null; }
+}
+
 export function ClubProvider({ children }) {
   const [state, setState] = useState({ club: null, tz: DEFAULT_TZ, ready: false });
   useEffect(() => {
     let live = true;
+    const kept = remembered();
+    if (kept) setState({ club: kept, tz: kept.timezone || DEFAULT_TZ, ready: true });
     api('/club').then((r) => {
       if (!live) return;
       const club = r?.json?.club || null;
+      if (!club && kept) return;
+      try { if (club) sessionStorage.setItem(CLUB_MEMORY, JSON.stringify({ club })); } catch { /* private mode */ }
       setState({ club, tz: club?.timezone || DEFAULT_TZ, ready: true });
     });
     return () => { live = false; };

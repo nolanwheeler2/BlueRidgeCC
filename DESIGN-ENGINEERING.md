@@ -156,7 +156,11 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **When the club's online payments are in test,** Verde's `GET /club` says so (`club.payments.test`), and **every page** shows a slim, dark, translucent bar along the bottom of the screen (`.test-ribbon` in `components/Layout.js`): a small amber dot, **Test mode**, "No real charges", and the test card as a chip. It's at the bottom so it never covers the header; the footer keeps room for it. Restyled in 028 to be understated, not a block of yellow.
 - **The card form** (`components/CardPayment.js`) already loads the publishable key Verde returns with each payment, so a test payment gets the test key automatically. When the payment says `test`, the form shows one quiet line above the card field (`.test-note`): **Test mode.** No real charge, with the test card as a chip.
 
-## 19. Checking changes
+## 19. Loading fast (commit 029)
+- **The club is fetched once per visit,** by `ClubProvider`, and kept for the browser tab (`sessionStorage`, `verde.club.v1`). A refresh or the next page draws from memory at once, then asks Verde again quietly. **No page fetches `/club` itself;** read it with `useClub()`. The tee times and home pages each fetched it a second time, and the tee times waited on that second request.
+- **A short memory of what's been shown** (`apiRemembered`, `remembered`, `prefetch`, `forget` in `lib/verdeClient.js`): a day of tee times is kept briefly. A day already seen shows at once while it's asked for again (older than 15 seconds), and **the next day is fetched ahead**, so moving forward is instant. After a booking, the remembered lists are forgotten, so a time just taken never shows as open. Verde checks every booking, so a moment-old list can never book a time that's gone.
+
+## 20. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build
