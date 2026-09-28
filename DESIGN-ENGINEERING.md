@@ -148,7 +148,11 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **The club's note** (Verde commit 505, `note`) follows the label as its own sentence: "8:00 AM to 11:00 PM · Closed for aeration. Greens are being aerated."
 - **Band styles:** reserved is quiet (paper, gray rule), members-only carries the gold rule, a closure the clay. An **all-day closure** is said by the red notice alone, not repeated as a band.
 
-## 17. Checking changes
+## 17. The webhooks page (`pages/webhooks.js`, commit 025)
+- **For developers, not linked from the public site.** **Set Up** is three numbered steps, with the webhook address and a Copy button. **Deliveries** is the same feed as the console's Webhooks tab (`/api/webhooks/recent`, every 5 seconds), in the console's colors (`.dc-panel`): type, time (the club's), signature verified or refused, and the event as highlighted JSON (`Json`, exported from `components/DevConsole.js`). Click a delivery to open or close it; the newest starts open.
+- **It was blank from commit 008 to 024:** it used the old inline JSON boxes (`.devbox`), which commit 008 hid site-wide. Nothing on the site uses `.devbox` now.
+
+## 18. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build

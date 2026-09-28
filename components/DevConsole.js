@@ -29,8 +29,9 @@ function statusTone(s) {
   return 'ok';
 }
 
-/* JSON, highlighted without a library: keys, strings, numbers, literals. */
-function Json({ value }) {
+/* JSON, highlighted without a library: keys, strings, numbers, literals.
+   Shared with the webhooks page (commit 025). */
+export function Json({ value }) {
   const html = useMemo(() => {
     const text = JSON.stringify(value, null, 2) ?? 'null';
     const esc = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
