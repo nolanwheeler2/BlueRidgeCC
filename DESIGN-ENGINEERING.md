@@ -88,7 +88,15 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Time grouping:** `TimeGroups` groups by the hour **at the club** (`tz`, else the club's zone). A slot that is already club wall-clock time (dining's "18:30") passes `hour` and is never converted.
 - **Don't** use `new Date(...).toLocaleDateString()`, `getDate()`, `getDay()` or `<input type="date">` anywhere on this site. A search for them should find nothing outside `lib/clubTime.js`.
 
-## 11. Checking changes
+## 11. Dining (`pages/dining.js`, commit 016)
+- **A restaurant's flow.**
+  - **The booking bar:** Where (each dining room, when there's more than one), Guests (limited to the room's largest party), and a line with the room's hours and party limit.
+  - **Then** the day strip and the day's times as compact tiles, grouped by **Breakfast, Lunch and Dinner** (`TimeGroups meals`; lunch starts at 11, dinner at 4), with "Few left" and "Full".
+- **Dining's times are the club's wall clock** ("18:30") and are grouped by their own hour, never converted.
+- **Choosing a time folds the times** (Change Time). Then Your Details (`components/Details`, so a member books as themselves), **The Occasion** as choices, and Requests.
+- **A room that confirms its own tables** (`auto_confirm: false`) says so throughout and asks for a **Request**; the success page reads "Request Received". No payment is taken.
+
+## 12. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build

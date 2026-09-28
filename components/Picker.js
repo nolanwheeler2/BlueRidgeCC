@@ -54,27 +54,31 @@ export function Toggle({ checked, onChange, title, detail }) {
 }
 
 const PART = (h) => (h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening');
+/* A dining room's parts of the day (commit 016): lunch starts at 11. */
+const MEAL = (h) => (h < 11 ? 'Breakfast' : h < 16 ? 'Lunch' : 'Dinner');
 
 /** slots: [{ key, iso, label, sub, meta, disabled, hour? }] - grouped by the
  *  hour AT THE CLUB (commit 015): `tz`, else the club's zone; never the
  *  visitor's. A slot that is already a club wall-clock time (dining's "18:30")
  *  passes `hour` and is grouped by it as-is. `tiles` lays each time out as a
- *  tee sheet tile (commit 009): the time large, the price, the places left. */
-export function TimeGroups({ slots, value, onPick, tz, tiles = false }) {
+ *  tee sheet tile (commit 009): the time large, the price, the places left;
+ *  `compact` makes them the smaller start tiles (dining, commit 016). */
+export function TimeGroups({ slots, value, onPick, tz, tiles = false, compact = false, meals = false }) {
   const { tz: clubTz } = useClub();
   const zone = tz || clubTz;
   const groups = {};
   for (const s of slots) {
     const h = s.hour != null ? s.hour
       : Number(new Date(s.iso).toLocaleTimeString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: zone }));
-    (groups[PART(h)] = groups[PART(h)] || []).push(s);
+    const part = (meals ? MEAL : PART)(h);
+    (groups[part] = groups[part] || []).push(s);
   }
   return (
     <div className="timegroups">
-      {['Morning', 'Afternoon', 'Evening'].filter((g) => groups[g]).map((g) => (
+      {(meals ? ['Breakfast', 'Lunch', 'Dinner'] : ['Morning', 'Afternoon', 'Evening']).filter((g) => groups[g]).map((g) => (
         <div key={g} className="tg">
           <div className="tg-h">{g}<span>{groups[g].length} {groups[g].length === 1 ? 'time' : 'times'}</span></div>
-          <div className={tiles ? 'tiles' : 'pills'}>
+          <div className={tiles ? 'tiles' + (compact ? ' compact' : '') : 'pills'}>
             {groups[g].map((s) => tiles ? (
               <button key={s.key} disabled={s.disabled} className={'tile' + (value === s.key ? ' on' : '')} onClick={() => onPick(s)} aria-pressed={value === s.key}>
                 <span className="tile-time">{s.label}</span>
