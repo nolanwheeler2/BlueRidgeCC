@@ -203,6 +203,13 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
 
       <main>{children}</main>
 
+      {/* TEST MODE (Verde commit 519): the club's online payments are in test,
+          said on every page along the bottom of the screen. */}
+      {club?.payments?.test ? (
+        <div className="test-ribbon" role="status">
+          <b>TEST MODE</b> No real charges. Pay with the test card 4242 4242 4242 4242, any future date, any CVC.
+        </div>
+      ) : null}
       <footer className="site-foot">
         <div className="wrap">
           <div className="foot-top">
