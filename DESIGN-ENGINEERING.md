@@ -110,7 +110,22 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Entering opens under the event** (`.ev-enter`): `Details`, then either `POST /tournaments/{id}/entries` (free, or the waitlist) or, when `entry_requires_payment`, a card payment `{ type: 'event_entry', event_id }`. The result replaces the button in place ("You're In" / "On the Waitlist").
 - `components/EventCard.js` is no longer used by any page. It's kept for reference.
 
-## 13. Checking changes
+## 13. Private events (`pages/private-events.js`, commit 018)
+- **A venue page before a form:**
+  - a statement;
+  - **The Spaces** (`.spaces`): each with **its own** library photo (events-wedding, events-banquet, clubhouse-interior), what it suits and how many it holds;
+  - **How It Comes Together** (`.steps`), four numbered steps;
+  - the enquiry beside **The Events Office** card (the club's phone and location from `GET /club`).
+- **The enquiry** follows `GET /private-events`:
+  - occasions as choices;
+  - a guest minimum, with a warning under it;
+  - the preferred date's earliest day is **today at the club plus `min_notice_days`**, and the default is six months out;
+  - when the club isn't taking enquiries online, the form says so.
+
+  It posts to `POST /private-events/enquiries`.
+- The spaces and their copy are the club's own words in the page (`SPACES`). A real club edits them there.
+
+## 14. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build
