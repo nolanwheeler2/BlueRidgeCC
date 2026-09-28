@@ -207,7 +207,9 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
           said on every page along the bottom of the screen. */}
       {club?.payments?.test ? (
         <div className="test-ribbon" role="status">
-          <b>TEST MODE</b> No real charges. Pay with the test card 4242 4242 4242 4242, any future date, any CVC.
+          <span className="test-ribbon-t"><i aria-hidden="true" />Test mode</span>
+          <span className="test-ribbon-m">No real charges</span>
+          <span className="test-ribbon-m">Test card <code>4242 4242 4242 4242</code></span>
         </div>
       ) : null}
       <footer className="site-foot">

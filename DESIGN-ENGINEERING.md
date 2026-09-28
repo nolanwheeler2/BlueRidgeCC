@@ -153,8 +153,8 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **It was blank from commit 008 to 024:** it used the old inline JSON boxes (`.devbox`), which commit 008 hid site-wide. Nothing on the site uses `.devbox` now.
 
 ## 18. Test mode (commit 027; needs Verde 519)
-- **When the club's online payments are in test,** Verde's `GET /club` says so (`club.payments.test`), and **every page** shows a **TEST MODE** ribbon along the bottom of the screen (`.test-ribbon` in `components/Layout.js`), with the test card. It's at the bottom so it never covers the header; the footer keeps room for it.
-- **The card form** (`components/CardPayment.js`) already loads the publishable key Verde returns with each payment, so a test payment gets the test key automatically. When the payment says `test`, the form also says **"Test mode: no real charge. Use card 4242 4242 4242 4242."**
+- **When the club's online payments are in test,** Verde's `GET /club` says so (`club.payments.test`), and **every page** shows a slim, dark, translucent bar along the bottom of the screen (`.test-ribbon` in `components/Layout.js`): a small amber dot, **Test mode**, "No real charges", and the test card as a chip. It's at the bottom so it never covers the header; the footer keeps room for it. Restyled in 028 to be understated, not a block of yellow.
+- **The card form** (`components/CardPayment.js`) already loads the publishable key Verde returns with each payment, so a test payment gets the test key automatically. When the payment says `test`, the form shows one quiet line above the card field (`.test-note`): **Test mode.** No real charge, with the test card as a chip.
 
 ## 19. Checking changes
 With no Verde key, build and render against a mock API:

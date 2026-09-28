@@ -62,7 +62,7 @@ export default function CardPayment({ start, onDone, label = 'Pay by Card' }) {
         <div className="card-box">
           {/* The club's online payments are in test (Verde commit 519). */}
           {payment.test ? (
-            <div className="notice warn" style={{ marginTop: 0 }}><b>Test mode: no real charge.</b> Use card 4242 4242 4242 4242, any future date, any CVC.</div>
+            <div className="test-note" role="status"><i aria-hidden="true" /><span><b>Test mode.</b> No real charge. Pay with <code>4242 4242 4242 4242</code>, any future date, any CVC.</span></div>
           ) : null}
           <div ref={box} />
           <button className="btn" style={{ width: '100%', marginTop: 14 }} disabled={busy} onClick={pay}>{busy ? 'Processing\u2026' : 'Pay ' + money(payment.amount_cents)}</button>

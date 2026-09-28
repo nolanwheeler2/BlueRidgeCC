@@ -776,10 +776,23 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
 .wh-body .dc-json { margin: 0; }
 @media (max-width: 640px) { .wh-cells { grid-template-columns: 1fr; gap: 4px; } .dc-panel .dc-s { text-align: left; } }
 
-/* ---------------------------------------------------------------- Test mode (commit 027) */
-/* The club's online payments are in test: a ribbon along the bottom of every
-   page, clear of the header, with room kept below the footer. */
-.test-ribbon { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
-  background: #fef3c7; color: #92400e; border-top: 1px solid #fcd34d; font-size: 14px; text-align: center; box-shadow: 0 -2px 10px rgba(0,0,0,.06); }
-.test-ribbon b { letter-spacing: .06em; margin-right: 8px; }
+/* ---------------------------------------------------------------- Test mode (commits 027, 028) */
+/* The club's online payments are in test. A slim, dark, translucent bar along
+   the bottom of every page - a small amber dot, "Test mode", "No real
+   charges", and the test card as a chip - clear without shouting over the
+   site. The footer keeps room for it. */
+.test-ribbon { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 6px 14px;
+  padding: 11px 16px calc(11px + env(safe-area-inset-bottom, 0px)); background: rgba(17, 20, 26, 0.88);
+  -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.92); font-size: 13px; line-height: 1.4; }
+.test-ribbon-t { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: .01em; }
+.test-ribbon-t i, .test-note i { width: 7px; height: 7px; border-radius: 999px; background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25); flex: none; }
+.test-ribbon-m { display: inline-flex; align-items: center; gap: 8px; color: rgba(255, 255, 255, 0.62); }
+.test-ribbon code, .test-note code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.5px; letter-spacing: .02em; padding: 2px 8px; border-radius: 6px; white-space: nowrap; }
+.test-ribbon code { color: rgba(255, 255, 255, 0.92); background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.12); }
 .test-ribbon ~ .site-foot { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
+/* At the card form: one quiet line above the card field. */
+.test-note { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 14px; padding: 10px 12px; border-radius: var(--r1); border: 1px solid var(--line); background: var(--paper-2); color: var(--ink); font-size: 14px; line-height: 1.55; }
+.test-note i { margin-top: 7px; }
+.test-note b { font-weight: 600; }
+.test-note code { color: var(--ink); background: var(--white); border: 1px solid var(--line); }
