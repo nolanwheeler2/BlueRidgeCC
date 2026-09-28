@@ -61,7 +61,7 @@ const MEAL = (h) => (h < 11 ? 'Breakfast' : h < 16 ? 'Lunch' : 'Dinner');
 function Band({ b }) {
   return (
     <div className={'band-row ' + (b.closure ? 'closed' : b.members_only ? 'members' : 'reserved')} role="note">
-      <b>{b.window}</b><span>{b.label}</span>
+      <b>{b.window}</b><span>{b.label}{b.note ? '. ' + b.note : ''}</span>
     </div>
   );
 }

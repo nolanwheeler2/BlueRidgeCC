@@ -144,6 +144,7 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 ## 16. Reserved windows inside the tee sheet (commit 022)
 - **Verde returns every window that keeps someone from booking** (`GET /tee-times` → `blocked`, Verde commit 504): `{ start, end, kind, label, window, members_only, closure, recurring }`, with the label already in golfer's words ("Reserved for the Monday Men's League", "Members only", "Closed").
 - **`TimeGroups bands={…}`** (`components/Picker.js`) draws each as a full-width **band** (`.band-row`) inside the tile grid, in the part of the day it starts, **before the first time at or after its start**. That's exactly where the gap is. A part of the day that's all reserved still shows, with just its band ("No times").
+- **The club's note** (Verde commit 505, `note`) follows the label as its own sentence: "8:00 AM to 11:00 PM · Closed for aeration. Greens are being aerated."
 - **Band styles:** reserved is quiet (paper, gray rule), members-only carries the gold rule, a closure the clay. An **all-day closure** is said by the red notice alone, not repeated as a band.
 
 ## 17. Checking changes
