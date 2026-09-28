@@ -694,3 +694,33 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
 .office-line span { color: var(--muted); }
 .office-line a { text-decoration: none; font-weight: 600; }
 .alt .panel { background: transparent; }
+
+/* ---------------------------------------------------------------- Your bookings (commit 019) */
+/* An itinerary: each booking a row with its day, what and where, and actions. */
+.trip { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 8px 28px; padding: 26px 0; border-bottom: 1px solid var(--line); }
+.trip.canceled .trip-main h3, .trip.canceled .ev-date { opacity: .5; }
+.trip-kind { margin: 0 0 4px; font-size: 13.5px; font-weight: 600; color: var(--brass); }
+.trip-main h3 { font-size: 26px; margin: 0 0 8px; letter-spacing: -.012em; }
+.trip-players { margin: 0 0 6px; font-size: 14.5px; color: var(--ink-soft); }
+.trip-actions { display: flex; align-items: center; gap: 12px 18px; flex-wrap: wrap; margin-top: 12px; }
+.trip-change { grid-column: 1 / -1; }
+.ev-facts .ok { color: var(--ok); font-weight: 500; }
+.code { font-family: var(--mono); font-weight: 500; letter-spacing: .06em; color: var(--ink); }
+/* A quiet, secondary action. */
+.text-link { background: none; border: 0; padding: 6px 0; font: 500 14.5px var(--sans); color: var(--ink-soft); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-2); cursor: pointer; }
+.text-link:hover:not(:disabled) { color: var(--bad); text-decoration-color: currentColor; }
+.text-link:disabled { opacity: .4; cursor: default; }
+/* Cancelling asks first, in place. */
+.confirm { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; margin-top: 12px; padding: 12px 14px; background: var(--bad-bg); border-left: 2px solid var(--bad); font-size: 14.5px; color: #6b2419; }
+.confirm span { flex: 1 1 260px; }
+/* Finding a booking by its reference. */
+.finder { max-width: 680px; padding: 8px 0 48px; }
+.finder.quiet { margin-top: 56px; padding-top: 40px; border-top: 1px solid var(--line); }
+.finder h2 { font-size: 32px; margin: 0 0 8px; letter-spacing: -.015em; }
+.found { margin-top: 24px; padding: 20px 22px; background: var(--white); border: 1px solid var(--line); }
+.found h3 { font-size: 24px; margin: 0 0 8px; }
+/* Help, as a quiet strip at the foot of the page. */
+.help-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--line); }
+.help-strip b { display: block; font-family: var(--display); font-weight: 400; font-size: 20px; margin-bottom: 6px; }
+.help-strip span { font-size: 14.5px; color: var(--muted); line-height: 1.6; }
+@media (max-width: 720px) { .trip { grid-template-columns: 58px minmax(0, 1fr); } .help-strip { grid-template-columns: 1fr; gap: 20px; } }

@@ -125,7 +125,18 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
   It posts to `POST /private-events/enquiries`.
 - The spaces and their copy are the club's own words in the page (`SPACES`). A real club edits them there.
 
-## 14. Checking changes
+## 14. Your Bookings (`pages/manage.js`, commit 019)
+- **Signed in** (`GET /members/bookings`):
+  - **Invitations** first, with the host, the time, your share, and a gold "Held until"; accept by each payment method the club allows, or **Decline**;
+  - then **Coming Up** as an itinerary (`.trip`): the day, what it is (gold label), the time and place, status, party, price or your share, the code, and the players;
+  - **Change Time or Players** opens `ChangeTeeTime` under the booking;
+  - **Show the Last 90 Days** adds **Earlier**.
+- **Not signed in:** **Find Your Booking**. Choose what it was, paste the reference, then **Look It Up** (tee times, packages) or **Cancel Booking**. A signed-in member sees this below their itinerary as "Booked Without Signing In?".
+- **Cancelling always asks in place** (`.confirm`: "Cancel this tee time? … Yes, Cancel / Keep It"), never a browser pop-up. The result (fee, refund) shows under that booking.
+- **Help** sits in a quiet strip at the foot of the page (`.help-strip`).
+- Every date and time is the club's (commit 015). The page's own component reads the zone from `useClub()`. Commit 015 had missed it here, which crashed a guest lookup.
+
+## 15. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build
