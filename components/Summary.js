@@ -5,7 +5,7 @@
 import { money } from '../lib/verdeClient';
 import Scene from './Scene';
 
-export default function Summary({ title = 'Your Booking', scene, rows = [], lines = [], total, children, fine, reassure = true }) {
+export default function Summary({ title = 'Your Booking', scene, rows = [], lines = [], total, children, fine, reassure = true, empty = 'Choose a time to see the details here.' }) {
   const shown = rows.filter(Boolean);
   const priced = lines.filter((l) => l && l[1]);
   return (
@@ -15,7 +15,7 @@ export default function Summary({ title = 'Your Booking', scene, rows = [], line
         <h3>{title}</h3>
         {shown.length ? (
           <dl>{shown.map(([k, v]) => [<dt key={k + 't'}>{k}</dt>, <dd key={k + 'd'}>{v}</dd>])}</dl>
-        ) : <p className="empty">Choose a time to see the details here.</p>}
+        ) : <p className="empty">{empty}</p>}
         {priced.length ? (
           <div className="lines">{priced.map(([k, c]) => <div key={k}><span>{k}</span><span>{money(c)}</span></div>)}</div>
         ) : null}

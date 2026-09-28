@@ -134,7 +134,7 @@ export default function Simulators() {
             </>
           )}
         </div>
-        <Summary scene="sim" title="Your Bay Time"
+        <Summary scene="sim" title="Your Bay Time" empty="Choose a start to see the details here."
           rows={pick ? [['Bay', pick.bay.name], ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', timeIn(pick.start, tz)], ['Length', lengthWords(duration)], ['Players', party]] : []}
           lines={q ? [['Bay time', q.subtotal_cents], ['Tax', q.tax_cents]] : []}
           total={q?.total_cents} fine={q ? 'Pay at the club, or by card now.' : null}>

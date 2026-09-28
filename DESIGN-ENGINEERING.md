@@ -59,7 +59,14 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Each court's row** shows its sport and surface. **Peak starts** carry a gold "Peak" (`.tile.peak`), because they're priced higher.
 - **Rentals** (paddles, balls) come **after** a start is chosen, in their own panel with your details, and re-quote live. They're an add-on to a court you've found, not a filter for finding one.
 
-## 8. Checking changes
+## 8. Stay (`pages/rooms.js`, commit 013)
+- **A hotel's layout.** The **stay bar** (`.stay-bar`) is Arrive → the nights → Leave → Guests. Moving the arrival past the departure keeps the stay's length. On a phone the dates sit side by side.
+- **Each room is a listing** (`.listings` / `.listing`): name, facts ("Cottage · Sleeps 4 · 2 Queen Beds"), description, amenities (Wi-Fi spelled right), and the nightly rate in whole dollars with the total for the dates, before tax.
+- **Photos:** rooms show **their own photos** (`image_url`) when the club has uploaded them, with the library's lodging photo for any without, in a `.pictured` grid. When no room has one, the listings are text-led rather than repeating one stock photo.
+- **Choosing a room folds the list** (Change Room). "Anything we should know?" goes with your details.
+- **`Summary`** takes `empty`, the line shown before anything is chosen, so each page says the right thing ("Choose a room…", "Choose a start…").
+
+## 9. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build

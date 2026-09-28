@@ -149,7 +149,7 @@ export default function Courts() {
             </>
           )}
         </div>
-        <Summary scene="court" title="Your Court Time"
+        <Summary scene="court" title="Your Court Time" empty="Choose a start to see the details here."
           rows={pick ? [['Court', pick.court.name], ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', timeIn(pick.start, tz) + (pickedPeak ? ' (peak)' : '')], ['Length', lengthWords(duration)], ['Players', players]] : []}
           lines={q ? [['Court', q.court_cents ?? q.subtotal_cents], ['Rentals', q.equipment_cents], ['Tax', q.tax_cents]] : []}
           total={q?.total_cents} fine={q ? 'Pay at the club, or by card now.' : null}>

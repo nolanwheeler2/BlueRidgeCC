@@ -541,3 +541,48 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
 .tiles.compact .tile.peak { padding-top: 8px; padding-bottom: 7px; }
 /* In a row that mixes peak and regular starts, every time sits centered. */
 .tiles.compact .tile { justify-content: center; }
+
+/* ---------------------------------------------------------------- Stay (commit 013) */
+/* The stay bar: arrive, the nights between, leave, then guests. */
+.stay-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px 24px; padding-bottom: 26px; border-bottom: 1px solid var(--line); }
+.stay-date { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+.stay-date input { font-family: var(--display); font-size: 21px; padding: 10px 14px; min-width: 180px; }
+.stay-nights { align-self: flex-end; padding: 0 4px 14px; font-size: 14.5px; color: var(--muted); white-space: nowrap; position: relative; }
+.stay-nights::before, .stay-nights::after { content: ''; display: inline-block; width: 16px; height: 1px; background: var(--line-2); vertical-align: middle; margin: 0 8px; }
+@media (max-width: 560px) { .stay-date input { min-width: 0; width: 100%; } .stay-date { flex: 1 1 40%; } .stay-nights { display: none; } }
+
+/* A room listing: the words, and the price with its button. A photo leads
+   when the club has room photos. */
+.listings { border-top: 1px solid var(--line); margin-top: 14px; }
+.listing { display: grid; grid-template-columns: minmax(0, 1fr) 190px; gap: 28px; padding: 28px 0; border-bottom: 1px solid var(--line); }
+.listing.pictured { grid-template-columns: 220px minmax(0, 1fr) 190px; }
+.listing-photo { aspect-ratio: 4 / 3; overflow: hidden; background: var(--paper-2); position: relative; }
+.listing-photo img, .listing-photo .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.listing-body h3 { font-size: 28px; margin: 0 0 6px; letter-spacing: -.01em; }
+.listing-facts { margin: 0 0 12px; font-size: 14.5px; color: var(--ink-soft); font-weight: 500; }
+.listing-text { margin: 0 0 12px; font-size: 15.5px; line-height: 1.65; color: var(--ink-soft); max-width: 520px; }
+.listing-amenities { margin: 0; font-size: 14px; color: var(--muted); }
+.listing-price { display: flex; flex-direction: column; align-items: flex-end; text-align: right; gap: 2px; }
+.listing-price b { font-family: var(--display); font-weight: 400; font-size: 34px; line-height: 1; letter-spacing: -.01em; }
+.listing-price span { font-size: 14px; color: var(--muted); }
+.listing-price small { font-size: 13px; color: var(--muted); margin-top: 8px; max-width: 170px; line-height: 1.45; }
+.listing-price .btn { margin-top: 16px; width: 100%; }
+@media (max-width: 760px) {
+  .listing, .listing.pictured { grid-template-columns: 1fr; gap: 16px; }
+  .listing-price { align-items: flex-start; text-align: left; }
+  .listing-price .btn { width: auto; }
+}
+/* Stay on a phone: arrive and leave side by side, guests under them; the
+   price reads "$289 a night" on one line, the stay's total under it, and a
+   full-width button. */
+@media (max-width: 560px) {
+  .stay-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; }
+  .stay-bar .seg-field { grid-column: 1 / -1; }
+  .stay-date input { font-size: 17px; padding: 10px 10px; }
+  .listing-price { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+  .listing-price b { font-size: 30px; }
+  .listing-price small { flex-basis: 100%; max-width: none; margin-top: 2px; }
+  .listing-price .btn { width: 100%; margin-top: 12px; }
+}
+/* A segmented control is only as wide as its choices, wherever it sits. */
+.seg-field .seg { align-self: flex-start; }
