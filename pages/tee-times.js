@@ -22,7 +22,7 @@ import Success from '../components/Success';
 import CardPayment from '../components/CardPayment';
 import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
-import { StepBar, DateStrip, Segmented, Toggle, TimeGroups } from '../components/Picker';
+import { StepBar, DateStrip, Segmented, TimeGroups } from '../components/Picker';
 import { api, money, newKey } from '../lib/verdeClient';
 import GroupPlayers, { groupFields } from '../components/GroupPlayers';
 import { useClub, useClubDate } from '../components/Club';
@@ -100,7 +100,10 @@ export default function TeeTimes() {
                 <div className="tee-bar">
                   {courses.length > 1 ? <Segmented label="Course" value={courseId} onChange={setCourseId} options={courses.map((c) => [c.id, c.name + (c.holes ? ' · ' + c.holes : '')])} /> : null}
                   {!member ? <Segmented label="Players" value={players} onChange={(n) => { setPlayers(n); if (slot) doQuote(slot, n, cart); }} options={[[1, '1'], [2, '2'], [3, '3'], [4, '4']]} /> : null}
-                  <Toggle checked={cart} onChange={(v) => { setCart(v); if (slot) doQuote(slot, players, v); }} title="Add a Cart" detail="Recommended for the back nine" />
+                  {/* Walking or riding: the same kind of choice as the course, so
+                      the same control (commit 020). */}
+                  <Segmented label="Getting around" value={cart ? 'cart' : 'walk'} onChange={(v) => { const c = v === 'cart'; setCart(c); if (slot) doQuote(slot, players, c); }} options={[['walk', 'Walking'], ['cart', 'Cart']]} />
+                  <p className="bar-note">Walkers welcome all day. A cart is recommended for the climb on the back nine.</p>
                 </div>
                 <DateStrip value={date} onChange={setDate} />
 

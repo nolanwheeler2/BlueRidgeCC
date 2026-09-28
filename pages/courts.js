@@ -85,7 +85,7 @@ export default function Courts() {
               <div className="panel">
                 <div className="tee-bar">
                   {sports.length > 1 ? <Segmented label="Sport" value={sport} onChange={(v) => { setSport(v); setPick(null); setQuote(null); }} options={[['all', 'All'], ...sports.map((s) => [s, words(s)])]} /> : null}
-                  <Segmented label="How Long" value={duration} onChange={setDuration} options={[[60, '1 Hour'], [90, '90 Min'], [120, '2 Hours']]} />
+                  <Segmented label="How long" value={duration} onChange={setDuration} options={[[60, '1 Hour'], [90, '90 Min'], [120, '2 Hours']]} />
                   <Segmented label="Players" value={players} onChange={setPlayers} options={[[2, '2'], [4, '4'], [6, '6']]} />
                 </div>
                 <DateStrip value={date} onChange={setDate} />

@@ -76,7 +76,7 @@ export default function Simulators() {
             <>
               <div className="panel">
                 <div className="tee-bar">
-                  <Segmented label="How Long" value={duration} onChange={setDuration} options={LENGTHS} />
+                  <Segmented label="How long" value={duration} onChange={setDuration} options={LENGTHS} />
                   <Segmented label="Players" value={party} onChange={setParty} options={[[1, '1'], [2, '2'], [3, '3'], [4, '4'], [6, '6']]} />
                   <p className="bar-note">Clubs, balls and the full course library are included.</p>
                 </div>

@@ -136,7 +136,12 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Help** sits in a quiet strip at the foot of the page (`.help-strip`).
 - Every date and time is the club's (commit 015). The page's own component reads the zone from `useClub()`. Commit 015 had missed it here, which crashed a guest lookup.
 
-## 15. Checking changes
+## 15. The header's Reserve, and the booking bar (commit 020)
+- **Reserve** (`ReserveMenu` in `components/Layout.js`) is the header's call to action. It uses the logo's **gold** with a calendar mark, over a photo and on paper alike, and opens a menu of **everything the club books** (Tee Time, Simulator Bay, Court, Cottage, Table), each with a line icon, instead of only going to tee times. It opens on click, closes on a click away, Esc or navigation, and works the same on a phone.
+- **Booking bars hold one kind of control:** segmented choices of the same height. Tee times' cart is **Getting around: Walking | Cart**, not a toggle card, with its advice in the bar's note line. A toggle card (still used for rentals) is sized to match a segmented control.
+- **Field labels are sentence case** ("Getting around", "How long"); headings, buttons and menu items are Title Case.
+
+## 16. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build

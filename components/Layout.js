@@ -15,7 +15,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useDevMode } from './DevMode';
 import { useMember } from './Member';
 import DevConsole from './DevConsole';
@@ -38,6 +38,57 @@ function Logo({ variant = 'both' }) {
       <img src="/brand/logo-light.png" className="logo logo-on-photo" alt="Blue Ridge Country Club" width="252" height="120" />
       <img src="/brand/logo.png" className="logo logo-on-paper" alt="" aria-hidden="true" width="252" height="120" />
     </>
+  );
+}
+
+/* RESERVE (commit 020): the header's call to action. Everything the club
+   books online, one tap away - not just tee times - in the logo's gold, with
+   a calendar mark. Opens on click (and closes on a click away or Esc), so it
+   works the same on a phone. */
+const RESERVE = [
+  ['/tee-times', 'Tee Time', 'M3 20h18M12 20V4l7 3-7 3'],
+  ['/simulators', 'Simulator Bay', 'M3 5h18v11H3zM8 20h8M12 16v4'],
+  ['/courts', 'Court', 'M4 4h16v16H4zM12 4v16M4 12h16'],
+  ['/rooms', 'Cottage', 'M3 11l9-7 9 7v9H3zM9 20v-6h6v6'],
+  ['/dining', 'Table', 'M5 3v8a2 2 0 0 0 4 0V3M7 11v10M17 3c-2 2-2 6 0 8v10'],
+];
+
+function Icon({ d, size = 18 }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>;
+}
+
+function ReserveMenu() {
+  const [open, setOpen] = useState(false);
+  const box = useRef(null);
+  const { pathname } = useRouter();
+  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const away = (e) => { if (box.current && !box.current.contains(e.target)) setOpen(false); };
+    const esc = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', away);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc); };
+  }, [open]);
+  return (
+    <div className="reserve-wrap" ref={box}>
+      <button className={'reserve' + (open ? ' open' : '')} onClick={() => setOpen((o) => !o)} aria-expanded={open} aria-haspopup="true">
+        <Icon d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4" size={17} />
+        <span>Reserve</span>
+        <svg className="caret" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 L5 6.5 L8 3.5" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+      </button>
+      {open ? (
+        <div className="reserve-menu" role="menu">
+          <p>What would you like to reserve?</p>
+          {RESERVE.map(([href, label, d]) => (
+            <Link key={href} href={href} role="menuitem" className={pathname === href ? 'on' : ''}>
+              <span className="ri"><Icon d={d} /></span>{label}
+              <svg className="go" width="14" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 5 H14 M10 1 L14 5 L10 9" fill="none" stroke="currentColor" strokeWidth="1.3" /></svg>
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -112,7 +163,7 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
                 ) : null}
               </div>
             ) : <button className="text-btn signin" onClick={signIn}>Member Sign In</button>) : null}
-            <Link href="/tee-times" className="btn reserve">Reserve</Link>
+            <ReserveMenu />
             <button className="menu-btn" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-label="Menu">
               <span /><span />
             </button>
