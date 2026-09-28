@@ -1,6 +1,9 @@
 // pages/_document.js
-// Fonts load in the browser from Google Fonts, so the build never depends on
-// reaching them; Georgia and the system font stand in until they arrive.
+// Type (commit 008): Newsreader for display - an editorial serif with real
+// optical sizes, so headlines get the tight, high-contrast cut and small text
+// stays sturdy - and Hanken Grotesk for everything you read or tap. Loaded
+// from Google Fonts in the browser, with Georgia and the system font standing
+// in until they arrive.
 import { Html, Head, Main, NextScript } from 'next/document';
 
 export default function Document() {
@@ -9,7 +12,8 @@ export default function Document() {
       <Head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <link rel="preconnect" href="https://apnuagczfgwdlthmxrsb.supabase.co" />
+        <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=Hanken+Grotesk:wght@400;500;600&display=swap" rel="stylesheet" />
       </Head>
       <body><Main /><NextScript /></body>
     </Html>

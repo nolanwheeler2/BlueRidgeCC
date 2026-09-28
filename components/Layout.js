@@ -1,25 +1,54 @@
 // components/Layout.js
-// The club's header and footer. `hero` is the home page's full-bleed opener;
-// inner pages pass `title` and `intro` for a smaller banner.
+// ============================================
+// The club's frame (redesigned in commit 008): the header, each page's
+// photographic opener, the footer, and the developer console.
+//
+//   header   sits over the opening photograph in white, and turns solid once
+//            the page scrolls. Golf, Stay and Events open small menus; on a
+//            phone everything is in a full-screen menu.
+//   opener   the home page passes `hero`; every other page gets its own
+//            photograph (lib/photos PAGE_PHOTOS) with `title` and `intro` on it.
+//   footer   the club's address and phone from Verde (GET /club, fetched
+//            once per visit), the site map, and Developer view.
+// ============================================
+
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useDevMode } from './DevMode';
-import Mountains from './Mountains';
 import { useMember } from './Member';
+import DevConsole from './DevConsole';
+import Photo from './Photo';
+import { PAGE_PHOTOS } from '../lib/photos';
+import { api } from '../lib/verdeClient';
 
 const NAV = [
-  ['/tee-times', 'Tee Times'], ['/simulators', 'Simulators'], ['/courts', 'Courts'], ['/rooms', 'Stay'], ['/packages', 'Packages'],
-  ['/dining', 'Dining'], ['/tournaments', 'Events'], ['/private-events', 'Private Events'],
+  { label: 'Golf', items: [['/tee-times', 'Tee times', 'Eighteen holes on the ridge'], ['/simulators', 'Simulators', 'Indoor bays, all year']] },
+  { label: 'Racquets', href: '/courts' },
+  { label: 'Stay', items: [['/rooms', 'Cottages', 'Above the eighteenth green'], ['/packages', 'Stay and play', 'A room, your rounds, dinner']] },
+  { label: 'Dining', href: '/dining' },
+  { label: 'Events', items: [['/tournaments', 'Tournaments', 'Scrambles, member-guest, leagues'], ['/private-events', 'Private events', 'Weddings, outings, meetings']] },
 ];
 
-function Logo() {
+/* The club's details, once per visit. */
+let clubPromise = null;
+function useClub() {
+  const [club, setClub] = useState(null);
+  useEffect(() => {
+    if (!clubPromise) clubPromise = api('/club').then((r) => r?.json?.club || null).catch(() => null);
+    let live = true;
+    clubPromise.then((c) => { if (live) setClub(c); });
+    return () => { live = false; };
+  }, []);
+  return club;
+}
+
+function Mark({ light }) {
   return (
-    <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true">
-      <circle cx="20" cy="20" r="19" fill="#1d3450" />
-      <path d="M6 27l8-9 5 5 6-8 9 12z" fill="#8ea7c4" />
-      <path d="M6 27l7-6 5 4 6-6 10 8v2H6z" fill="#f3d9b1" opacity=".9" />
+    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" className="mark">
+      <path d="M2 24 L11 13 L16 18.5 L21.5 10 L30 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M2 28 H30" stroke="currentColor" strokeWidth="1.6" opacity={light ? 0.7 : 0.55} />
     </svg>
   );
 }
@@ -27,82 +56,140 @@ function Logo() {
 export default function Layout({ title, intro, eyebrow, hero, children }) {
   const { dev, setDev } = useDevMode();
   const { pathname } = useRouter();
-  const [open, setOpen] = useState(false);
   const { member, ready, signIn, signOut } = useMember();
-  const [menu, setMenu] = useState(false);
-  /* ?signin=cancelled|expired|failed from /api/auth/callback - said once. */
+  const club = useClub();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [acct, setAcct] = useState(false);
+  const [solid, setSolid] = useState(false);
   const [signinNote, setSigninNote] = useState(null);
+
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get('signin');
-    if (v) setSigninNote({ cancelled: 'Sign-in was canceled.', expired: 'That sign-in took too long - please try again.', failed: 'Sign-in didn’t go through - please try again.' }[v] || null);
+    if (v) setSigninNote({ cancelled: 'Sign-in was canceled.', expired: 'That sign-in took too long. Please try again.', failed: 'Sign-in didn’t go through. Please try again.' }[v] || null);
+    const onScroll = () => setSolid(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
+  useEffect(() => { setMenuOpen(false); setAcct(false); }, [pathname]);
+  useEffect(() => { document.body.style.overflow = menuOpen ? 'hidden' : ''; }, [menuOpen]);
+
+  const photo = PAGE_PHOTOS[pathname];
+  const inSection = (group) => group.href === pathname || (group.items || []).some(([h]) => h === pathname);
+  const year = new Date().getFullYear();
+
   return (
     <>
       <Head>
-        <title>{title ? title + ' · Blue Ridge Country Club' : 'Blue Ridge Country Club'}</title>
+        <title>{title ? title + ' | Blue Ridge Country Club' : 'Blue Ridge Country Club'}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Golf, dining and stays in the Blue Ridge." />
+        <meta name="description" content="Golf, dining and cottages on the ridge. Book tee times, simulators, courts, rooms and tables online." />
+        <meta name="theme-color" content="#14202b" />
       </Head>
-      {dev ? (
-        <div className="devbar"><div className="wrap"><span>Developer view · every step shows its Verde API request</span><Link href="/webhooks" style={{ color: '#f3d9b1' }}>Webhooks</Link></div></div>
-      ) : null}
-      <header className="topbar">
-        <div className="wrap">
-          <Link href="/" className="brand"><Logo /><span><b>Blue Ridge</b><small>Country Club</small></span></Link>
-          <button className="menu-btn" onClick={() => setOpen((o) => !o)} aria-label="Menu">Menu</button>
-          <nav className={'nav' + (open ? ' open' : '')}>
-            {NAV.map(([h, l]) => <Link key={h} href={h} className={pathname === h ? 'on' : ''} onClick={() => setOpen(false)}>{l}</Link>)}
-          </nav>
-          {ready ? (member ? (
-            <div className="acct">
-              <button className="acct-btn" onClick={() => setMenu((m) => !m)} aria-expanded={menu}>
-                <span className="avatar sm">{(member.name || member.email || '?').slice(0, 1).toUpperCase()}</span>
-                <span className="acct-name">{(member.name || member.email || '').split(' ')[0]}</span>
-              </button>
-              {menu ? (
-                <div className="acct-menu">
-                  <b>{member.name || 'Signed in'}</b><span>{member.email}</span>
-                  <Link href="/manage" onClick={() => setMenu(false)}>Your bookings</Link>
-                  <button onClick={async () => { setMenu(false); await signOut(); }}>Sign out</button>
+
+      <header className={'site-head' + (solid || menuOpen ? ' solid' : '')}>
+        <div className="wrap head-row">
+          <Link href="/" className="brand" aria-label="Blue Ridge Country Club, home">
+            <Mark light={!solid} />
+            <span className="brand-name">Blue Ridge<em>Country Club</em></span>
+          </Link>
+
+          <nav className="primary" aria-label="Main">
+            {NAV.map((g) => g.items ? (
+              <div key={g.label} className={'nav-group' + (inSection(g) ? ' here' : '')}>
+                <button className="nav-top" aria-haspopup="true">{g.label}<svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.5 L5 6.5 L8 3.5" fill="none" stroke="currentColor" strokeWidth="1.4" /></svg></button>
+                <div className="nav-menu">
+                  {g.items.map(([h, l, s]) => (
+                    <Link key={h} href={h} className={pathname === h ? 'on' : ''}><b>{l}</b><span>{s}</span></Link>
+                  ))}
                 </div>
-              ) : null}
-            </div>
-          ) : <button className="btn small ghost signin" onClick={signIn}>Sign in</button>) : null}
-          <Link href="/tee-times" className="btn small" style={{ whiteSpace: 'nowrap' }}>Book a tee time</Link>
+              </div>
+            ) : (
+              <Link key={g.label} href={g.href} className={'nav-top' + (inSection(g) ? ' here' : '')}>{g.label}</Link>
+            ))}
+          </nav>
+
+          <div className="head-end">
+            {ready ? (member ? (
+              <div className="acct">
+                <button className="acct-btn" onClick={() => setAcct((m) => !m)} aria-expanded={acct}>
+                  <span className="avatar sm">{(member.name || member.email || '?').slice(0, 1).toUpperCase()}</span>
+                  <span className="acct-name">{(member.name || member.email || '').split(' ')[0]}</span>
+                </button>
+                {acct ? (
+                  <div className="acct-menu">
+                    <b>{member.name || 'Signed in'}</b><span>{member.email}</span>
+                    <Link href="/manage">Your bookings</Link>
+                    <button onClick={async () => { setAcct(false); await signOut(); }}>Sign out</button>
+                  </div>
+                ) : null}
+              </div>
+            ) : <button className="text-btn signin" onClick={signIn}>Member sign in</button>) : null}
+            <Link href="/tee-times" className="btn reserve">Reserve</Link>
+            <button className="menu-btn" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-label="Menu">
+              <span /><span />
+            </button>
+          </div>
         </div>
       </header>
-      {hero || (title ? (
-        <div className="page-hero">
-          <Mountains className="ridge" />
-          <div className="wrap" style={{ position: 'relative' }}>
-            {eyebrow ? <div className="eyebrow">{eyebrow}</div> : null}
-            <h1>{title}</h1>
-            {intro ? <p>{intro}</p> : null}
+
+      <div className={'mobile-menu' + (menuOpen ? ' open' : '')} aria-hidden={!menuOpen}>
+        <div className="wrap">
+          {NAV.map((g) => (
+            <div key={g.label} className="mm-group">
+              <h3>{g.label}</h3>
+              {(g.items || [[g.href, g.label === 'Racquets' ? 'Courts' : g.label, '']]).map(([h, l]) => <Link key={h} href={h}>{l}</Link>)}
+            </div>
+          ))}
+          <div className="mm-group">
+            <h3>Your visit</h3>
+            <Link href="/manage">Your bookings</Link>
+            {!member ? <button className="text-btn" onClick={signIn}>Member sign in</button> : null}
           </div>
         </div>
+      </div>
+
+      {hero || (title ? (
+        <section className="opener">
+          {photo ? <Photo name={photo.key} focus={photo.focus} priority className="opener-photo" /> : null}
+          <div className="opener-shade" />
+          <div className="wrap opener-copy">
+            {eyebrow ? <p className="crumb">{eyebrow}</p> : null}
+            <h1>{title}</h1>
+            {intro ? <p className="opener-intro">{intro}</p> : null}
+          </div>
+        </section>
       ) : null)}
-      {signinNote ? <div className="wrap"><div className="notice warn" style={{ marginTop: 16 }}>{signinNote}</div></div> : null}
+
+      {signinNote ? <div className="wrap"><div className="notice warn" style={{ marginTop: 20 }}>{signinNote}</div></div> : null}
+
       <main>{children}</main>
-      <footer className="site">
+
+      <footer className="site-foot">
         <div className="wrap">
-          <div className="cols">
-            <div>
-              <b>Blue Ridge Country Club</b>
-              <p style={{ fontSize: 14, lineHeight: 1.7, color: '#b9c7d6', maxWidth: 360 }}>Eighteen holes along the ridgeline, a clubhouse built for long lunches, and rooms for the night after.</p>
+          <div className="foot-top">
+            <div className="foot-club">
+              <Link href="/" className="brand"><Mark light /><span className="brand-name">Blue Ridge<em>Country Club</em></span></Link>
+              <p>{club?.location || 'On the ridge, western North Carolina'}</p>
+              {club?.phone ? <p><a href={'tel:' + club.phone.replace(/[^\d+]/g, '')}>{club.phone}</a></p> : null}
             </div>
-            <div>
-              <a href="/tee-times">Tee times</a><a href="/simulators">Simulators</a><a href="/courts">Courts</a><a href="/rooms">Stay</a><a href="/packages">Stay and play</a>
-            </div>
-            <div>
-              <a href="/dining">Dining</a><a href="/tournaments">Events</a><a href="/private-events">Private events</a><a href="/manage">Manage a booking</a>
+            <div className="foot-cols">
+              <div><h4>Play</h4><Link href="/tee-times">Tee times</Link><Link href="/simulators">Simulators</Link><Link href="/courts">Courts</Link></div>
+              <div><h4>Stay</h4><Link href="/rooms">Cottages</Link><Link href="/packages">Stay and play</Link><Link href="/dining">Dining</Link></div>
+              <div><h4>The club</h4><Link href="/tournaments">Tournaments</Link><Link href="/private-events">Private events</Link><Link href="/manage">Your bookings</Link></div>
             </div>
           </div>
-          <div className="base">
-            <span>Bookings powered by Verde</span>
-            <button className={'devswitch' + (dev ? ' on' : '')} onClick={() => setDev(!dev)}>{dev ? 'Developer view: on' : 'Developer view'}</button>
+          <div className="foot-base">
+            <span>&copy; {year} Blue Ridge Country Club</span>
+            <span className="foot-verde">Reservations by Verde</span>
+            <button className={'dev-toggle' + (dev ? ' on' : '')} onClick={() => setDev(!dev)} title="Ctrl+Shift+D">
+              {dev ? 'Developer view on' : 'Developer view'}
+            </button>
           </div>
         </div>
       </footer>
+
+      <DevConsole />
     </>
   );
 }

@@ -1,86 +1,115 @@
 // pages/index.js
-// The club's home page. Live from Verde: the club's name, place and courses
-// (GET /club), which amenities are open online, and upcoming events
-// (GET /tournaments). The rest is the club's own copy.
+// ============================================
+// The club's home page (redesigned in commit 008).
+//
+// Photography first, one idea per section, and very little chrome. Live from
+// Verde: the club's place, phone and courses (GET /club - how many holes,
+// which amenities book online), upcoming tournaments (GET /tournaments), and
+// the lowest stay-and-play price (GET /packages). Everything else is the
+// club's own copy, written like a club would write it.
+// ============================================
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Layout from '../components/Layout';
-import Result from '../components/Result';
-import Mountains from '../components/Mountains';
-import Scene from '../components/Scene';
-import EventCard from '../components/EventCard';
+import Photo from '../components/Photo';
+import { useMember } from '../components/Member';
 import { api, money } from '../lib/verdeClient';
 
-const AMENITIES = [
-  ['tee_times', '/tee-times', 'Tee Times', 'golf', 'Eighteen holes along the ridge, with views into three states from the back nine.', ['18 holes', 'Carts', 'Twilight rates']],
-  ['simulators', '/simulators', 'Simulators', 'sim', 'Play Pebble Beach at lunch. Launch-monitor bays by the hour, rain or shine.', ['By the hour', 'Up to 6 players']],
-  ['courts', '/courts', 'Courts', 'court', 'Lit pickleball and tennis courts, with paddles and balls to rent.', ['Pickleball', 'Tennis', 'Rentals']],
-  ['lodging', '/rooms', 'Stay', 'room', 'Cottages above the eighteenth green, for the night after the round.', ['Cottages', 'Breakfast']],
-  ['packages', '/packages', 'Stay and Play', 'stayplay', 'A cottage, your rounds and dinner on us - one price, booked in one go.', ['Room + golf', 'One price']],
-  ['dining', '/dining', 'Dining', 'dining', 'The Grill and the terrace, from breakfast before your round to supper at last light.', ['The Grill', 'Terrace']],
-  ['tournaments', '/tournaments', 'Events', 'events', 'Scrambles, the member-guest and the season finale - enter online.', ['Scrambles', 'Leagues']],
-  ['private_events', '/private-events', 'Private Events', 'venue', 'Weddings, outings and meetings with the mountains behind you.', ['Weddings', 'Outings', 'Meetings']],
+const OFFERS = [
+  { avenue: 'lodging', href: '/rooms', photo: 'amenities-lodging', title: 'The cottages', text: 'Eight cottages above the eighteenth green, with porches that catch the last of the light.', size: 'wide' },
+  { avenue: 'courts', href: '/courts', photo: 'amenities-courts', title: 'Racquets', text: 'Lit courts for pickleball and tennis, with paddles and balls at the desk.' },
+  { avenue: 'simulators', href: '/simulators', photo: 'amenities-simulator', title: 'Simulators', text: 'Launch-monitor bays by the hour. Play the ridge in January.' },
+  { avenue: 'packages', href: '/packages', photo: 'clubhouse-patio', title: 'Stay and play', text: 'A cottage, your rounds and dinner on the terrace, booked in one go.', size: 'wide' },
 ];
 
-const VOICES = [
-  ['The fourteenth tee at sunset is the best seat in three states.', 'Member since 2009'],
-  ['We booked a tee time, a cottage and dinner in five minutes. Then we did it again the next month.', 'Visiting foursome from Charlotte'],
-  ['Our wedding on the eighteenth green - the team handled every detail.', 'Private event, June'],
-];
+function Arrow() {
+  return <svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true"><path d="M0 5 H14 M10 1 L14 5 L10 9" fill="none" stroke="currentColor" strokeWidth="1.3" /></svg>;
+}
 
 export default function Home() {
+  const { member, signIn } = useMember();
   const [club, setClub] = useState(null);
   const [events, setEvents] = useState(null);
-  /* Live packages (commit 011): the Stay and Play card shows the lowest
-     price on offer, and the club's own package names. */
   const [pkgs, setPkgs] = useState(null);
   useEffect(() => { api('/club').then(setClub); api('/tournaments').then(setEvents); api('/packages').then(setPkgs); }, []);
-  const packages = pkgs?.json?.packages || [];
-  const fromCents = packages.length ? Math.min(...packages.map((p) => p.price.base_cents)) : null;
+
   const c = club?.json?.club;
-  const upcoming = (events?.json?.tournaments || []).slice(0, 3);
-  const holes = (c?.courses || []).reduce((s, x) => s + (x.holes || 0), 0);
-  const open = c?.avenues ? Object.values(c.avenues).filter(Boolean).length : null;
+  const packages = pkgs?.json?.packages || [];
+  const fromCents = packages.length ? Math.min(...packages.map((p) => p.price?.base_cents ?? Infinity)) : null;
+  const upcoming = (events?.json?.tournaments || []).slice(0, 4);
+  const holes = (c?.courses || []).reduce((s, x) => s + (x.holes || 0), 0) || 18;
+  const courses = (c?.courses || []).length || 1;
+  const online = c?.avenues ? Object.values(c.avenues).filter(Boolean).length : 7;
 
   const hero = (
-    <div className="hero">
-      <Mountains className="art" />
-      <div className="shade" />
-      <div className="content">
-        <div className="eyebrow">{c?.location || 'In the Blue Ridge'}</div>
-        <h1>Golf where the mountains turn blue.</h1>
-        <p>Tee times, simulators, courts, dining and a room for the night - all booked right here.</p>
-        <div className="actions">
-          <Link href="/tee-times" className="btn light">Book a tee time</Link>
-          <Link href="/private-events" className="btn ghost" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.7)' }}>Plan an event</Link>
+    <section className="hero">
+      <Photo name="course-hero-dawn" focus="50% 60%" priority alt="The first fairway at dawn" />
+      <div className="hero-shade" />
+      <div className="wrap hero-copy">
+        <h1>Golf where the<br />mountains <em>turn blue.</em></h1>
+        <div className="hero-side">
+          <p>Eighteen holes on the ridgeline, a clubhouse for the long lunch, and a cottage for the night after.</p>
+          <div className="actions">
+            <Link href="/tee-times" className="btn light">Reserve a tee time</Link>
+            <Link href="/rooms" className="btn on-photo">Stay the night</Link>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 
   return (
     <Layout hero={hero}>
       <section className="block">
         <div className="wrap">
-          <div className="eyebrow" style={{ color: 'var(--accent)' }}>At the club</div>
-          <h2 className="section-title">Everything, one booking away</h2>
-          <p className="lead">Pick a time, see the club&rsquo;s price, and it&rsquo;s yours - paid at the club or by card.</p>
-          <div className="amenities">
-            {AMENITIES.map(([avenue, href, label, scene, sub, facts]) => {
-              /* Packages: open when the club sells them and has one live. */
-              const off = (c?.avenues && c.avenues[avenue] === false) || (avenue === 'packages' && pkgs && !packages.length);
-              if (avenue === 'packages') {
-                if (packages.length === 1) sub = packages[0].name + (packages[0].description ? ' - ' + packages[0].description : '');
-                if (fromCents !== null) facts = [...facts, 'From ' + money(fromCents)];
-              }
+          <p className="statement">
+            Blue Ridge has played along the same ridge since 1927. Bentgrass greens, elevated tees, and a back nine that
+            climbs into the clouds. The <em>clubhouse</em> keeps a table for the long lunch, and the <em>cottages</em> above
+            eighteen keep a light on for the night after.
+          </p>
+          <div className="facts">
+            <div><b>{holes}</b><span>holes on the ridge</span></div>
+            <div><b>{courses === 1 ? 'One' : courses}</b><span>{courses === 1 ? 'course, walkable' : 'courses'}</span></div>
+            <div><b>1927</b><span>first tee time</span></div>
+            <div><b>{online}</b><span>ways to book, right here</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="block alt">
+        <div className="wrap feature">
+          <div className="feature-media">
+            <Photo name="course-hero-aerial" alt="The back nine from above" />
+            <Photo name="course-flag" className="inset" alt="" />
+          </div>
+          <div className="feature-copy">
+            <h2 className="section-title">Laid along the ridgeline</h2>
+            <p>The front nine plays through hardwoods and back toward the clubhouse. The back nine turns uphill, and from the fourteenth tee you can see into three states on a clear morning.</p>
+            <p>Walkers are welcome all day. Carts are waiting for the climb.</p>
+            {c?.courses?.length ? <p className="caption">{c.courses.map((x) => x.name + (x.holes ? ', ' + x.holes + ' holes' : '')).join(' · ')}</p> : null}
+            <div style={{ marginTop: 28 }}><Link href="/tee-times" className="link-arrow">See tee times <Arrow /></Link></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="block">
+        <div className="wrap">
+          <h2 className="section-title">Beyond the eighteenth</h2>
+          <p className="lead">Everything the club offers books online here, at the club&rsquo;s own prices.</p>
+          <div className="offer-grid">
+            {OFFERS.map((o) => {
+              const off = c?.avenues && c.avenues[o.avenue] === false;
+              const text = o.avenue === 'packages' && fromCents != null && Number.isFinite(fromCents) ? o.text + ' From ' + money(fromCents) + '.' : o.text;
               return (
-                <Link key={href} href={href} className="amenity" style={off ? { opacity: .6 } : undefined}>
-                  <div className="scene"><Scene kind={scene} height={120} /></div>
-                  <div className="inner">
-                    <b>{label}</b>
-                    <span>{sub}</span>
-                    <div className="facts">{facts.map((f) => <span key={f} className="tag">{f}</span>)}</div>
-                    <div className="row"><span className="go">{off ? 'Not available online' : 'Book now →'}</span></div>
+                <Link key={o.href} href={o.href} className={'offer' + (o.size ? ' ' + o.size : '') + (off ? ' off' : '')}>
+                  <Photo name={o.photo} alt="" />
+                  <div className="offer-body">
+                    <div>
+                      <h3>{o.title}</h3>
+                      <p>{text}</p>
+                    </div>
+                    <span className="go">{off ? 'By phone' : <Arrow />}</span>
                   </div>
                 </Link>
               );
@@ -89,58 +118,81 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="band">
+        <Photo name="dining-room" focus="50% 50%" alt="The Grill, set for dinner" />
+        <div className="band-shade" />
+        <div className="wrap">
+          <h2>Supper at last light</h2>
+          <p>The Grill does breakfast before your round and a proper dinner after it. On warm nights, the terrace is the best table in the county.</p>
+          <Link href="/dining" className="btn light">Reserve a table</Link>
+        </div>
+      </section>
+
+      <section className="block">
+        <div className="wrap">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 24, flexWrap: 'wrap', marginBottom: 36 }}>
+            <h2 className="section-title" style={{ margin: 0 }}>On the calendar</h2>
+            <Link href="/tournaments" className="link-arrow">All tournaments <Arrow /></Link>
+          </div>
+          {upcoming.length ? (
+            <div className="calendar">
+              {upcoming.map((t) => {
+                const d = t.starts_at ? new Date(t.starts_at) : null;
+                return (
+                  <Link key={t.id} href="/tournaments" className="cal-row">
+                    <div className="cal-date">
+                      <b>{d ? d.getDate() : ''}</b>
+                      <span>{d ? d.toLocaleDateString('en-US', { month: 'long' }) : 'To be announced'}</span>
+                    </div>
+                    <div className="cal-what">
+                      <h3>{t.title}</h3>
+                      <span>
+                        {d ? d.toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''}
+                        {t.entry_fee_cents ? ' · ' + money(t.entry_fee_cents) + ' entry' : ' · No entry fee'}
+                        {t.spots_left != null ? ' · ' + (t.spots_left ? t.spots_left + ' places left' : 'Waitlist open') : ''}
+                      </span>
+                    </div>
+                    <span className="link-arrow">Enter <Arrow /></span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="calendar"><div className="cal-row" style={{ gridTemplateColumns: '1fr' }}><span className="empty">The season&rsquo;s tournaments are posted here as soon as they&rsquo;re set.</span></div></div>
+          )}
+        </div>
+      </section>
+
       <section className="block alt">
-        <div className="wrap feature">
-          <div className="feature-art"><Scene kind="golf" height={360} /></div>
+        <div className="wrap feature flip">
+          <div className="feature-media">
+            <Photo name="events-wedding" className="tall" alt="A ceremony on the lawn above eighteen" />
+          </div>
+          <div className="feature-copy">
+            <h2 className="section-title">Weddings, outings and long dinners</h2>
+            <p>The lawn above eighteen seats two hundred for a ceremony, and the ballroom opens onto the terrace for the reception. Outings get the whole course and a shotgun start.</p>
+            <p>Tell us the date and the headcount, and the events office will come back with a plan and a price.</p>
+            <div style={{ marginTop: 28 }}><Link href="/private-events" className="link-arrow">Plan an event <Arrow /></Link></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="block">
+        <div className="wrap visit">
           <div>
-            <div className="eyebrow" style={{ color: 'var(--accent)' }}>The course</div>
-            <h2 className="section-title">Laid along the ridgeline</h2>
-            <p className="lead" style={{ marginBottom: 0 }}>Bentgrass greens, elevated tees and a back nine that climbs into the clouds. Walkers welcome; carts for the steep holes.</p>
-            <div className="stats">
-              <div className="stat"><b>{holes || 18}</b><span>holes to play</span></div>
-              <div className="stat"><b>{(c?.courses || []).length || 1}</b><span>{(c?.courses || []).length === 1 ? 'course' : 'courses'}</span></div>
-              <div className="stat"><b>{open ?? 7}</b><span>ways to book online</span></div>
-            </div>
-            {c?.courses?.length ? <p className="note" style={{ color: 'var(--muted)', fontSize: 14 }}>{c.courses.map((x) => x.name + (x.holes ? ' · ' + x.holes + ' holes' : '')).join('   ·   ')}</p> : null}
-            <Link href="/tee-times" className="btn">See tee times</Link>
+            <h3>Finding us</h3>
+            <p>{c?.location || 'On the ridge, western North Carolina'}.<br />Twenty minutes from town, the last ten of them uphill.</p>
           </div>
-        </div>
-      </section>
-
-      <section className="block">
-        <div className="wrap">
-          <div className="eyebrow" style={{ color: 'var(--accent)' }}>Coming up</div>
-          <h2 className="section-title">Events at Blue Ridge</h2>
-          <p className="lead">Enter online where the club takes guest entries.</p>
-          <div className="evgrid">
-            {upcoming.length ? upcoming.map((t) => <EventCard key={t.id} t={t} />) : <p className="empty">New events are posted here as soon as they&rsquo;re announced.</p>}
+          <div>
+            <h3>The pro shop</h3>
+            <p>Open from first light to dusk.{c?.phone ? <><br /><a href={'tel:' + c.phone.replace(/[^\d+]/g, '')}>{c.phone}</a></> : null}</p>
           </div>
-        </div>
-      </section>
-
-      <section className="block alt">
-        <div className="wrap">
-          <div className="eyebrow" style={{ color: 'var(--accent)' }}>From our guests</div>
-          <h2 className="section-title">Why they come back</h2>
-          <div className="voices" style={{ marginTop: 24 }}>
-            {VOICES.map(([q, who]) => <div className="voice" key={q}><p>&ldquo;{q}&rdquo;</p><span>{who}</span></div>)}
+          <div>
+            <h3>Members</h3>
+            <p>
+              {member ? <>Welcome back, {(member.name || '').split(' ')[0] || 'member'}. <Link href="/manage">Your bookings</Link></> : <>Sign in to book at member rates and see your bookings. <button className="linkish" onClick={signIn}>Member sign in</button></>}
+            </p>
           </div>
-        </div>
-      </section>
-
-      <section className="block">
-        <div className="wrap">
-          <div className="cta-band">
-            <div>
-              <h2>Stay and play</h2>
-              <p>A cottage for the night, a tee time in the morning{c?.phone ? ' - or call us at ' + c.phone : ''}.</p>
-            </div>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <Link href="/rooms" className="btn light">Find a room</Link>
-              <Link href="/tee-times" className="btn ghost" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.6)' }}>Book golf</Link>
-            </div>
-          </div>
-          <Result result={club} title="GET /club" /><Result result={events} title="GET /tournaments" />
         </div>
       </section>
     </Layout>
