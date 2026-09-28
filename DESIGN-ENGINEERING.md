@@ -76,6 +76,7 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 **The rule: every date and time on this site is on the club's clock and written the American way. Never the visitor's time zone, never their locale.**
 
 - **The zone:** `components/Club.js` → `ClubProvider` (in `pages/_app.js`) fetches `GET /club` once, and `useClub()` gives `{ club, tz, ready }`. `tz` is the club's `timezone`, falling back to `America/New_York` until it loads.
+- **Booking pages open on today at the club** (commit 024), via `useOpenDay()` in `components/Club.js`. Tee times, simulators, courts and dining no longer open on tomorrow, which skipped a whole bookable day just after midnight. If today has **nothing left to book and nothing to explain why** (no closure, release line or reserved window), the page moves on a day, up to three, and says so under the heading ("No more times today, so here's Tuesday."). Once the visitor picks a day, it never moves on its own.
 - **Default days:** `useClubDate(offset)` returns a calendar date `offset` days from today **at the club**. It stays `null` until the zone is known, so a visitor abroad late at night never starts on the wrong day. Pages don't fetch until their date is set.
 - **`lib/clubTime.js`**, the only date math on the site:
   - a **calendar date** is `'YYYY-MM-DD'`, formatted with `fmtDay` (at noon UTC with `timeZone: 'UTC'`, so no offset moves it);

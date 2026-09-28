@@ -24,16 +24,16 @@ import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented } from '../components/Picker';
 import { api, newKey, timeIn } from '../lib/verdeClient';
-import { useClub, useClubDate } from '../components/Club';
-import { fmtDay } from '../lib/clubTime';
+import { useClub, useOpenDay } from '../components/Club';
+import { clubToday, fmtDay } from '../lib/clubTime';
 
 const longDate = (d) => fmtDay(d, { weekday: 'long', month: 'long', day: 'numeric' });
 const lengthWords = (m) => (m % 60 === 0 ? (m / 60) + (m === 60 ? ' hour' : ' hours') : m + ' minutes');
 const words = (v) => String(v || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 export default function Courts() {
-  /* Tomorrow at the club, once its time zone has loaded (commit 015). */
-  const [date, setDate] = useClubDate(1);
+  /* Today at the club, or the next day with something left to book (commit 024). */
+  const [date, setDate, skipIfEmpty, skippedFrom] = useOpenDay();
   const [duration, setDuration] = useState(60);
   const [players, setPlayers] = useState(4);
   const [sport, setSport] = useState('all');
@@ -70,6 +70,10 @@ export default function Courts() {
   const sports = [...new Set(all.map((c) => c.sport).filter(Boolean))];
   const courts = sport === 'all' ? all : all.filter((c) => c.sport === sport);
   const loading = !date || !list;
+  /* Nothing left to book today and no closure to explain it: open the next day (commit 024). */
+  useEffect(() => {
+    if (list?.ok) skipIfEmpty(!(list.json?.courts || []).some((x) => (x.starts || []).length) && !list.json?.closure);
+  }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
   const open = courts.reduce((n, c) => n + c.starts.length, 0);
   const pickedPeak = pick && pick.court.starts.find((s) => s.start === pick.start)?.peak;
 
@@ -92,7 +96,7 @@ export default function Courts() {
 
                 <div className="tee-day">
                   <h2>{longDate(date)}</h2>
-                  <span>{loading ? 'Checking the courts\u2026' : courts.length && !pick ? open + (open === 1 ? ' start' : ' starts') + ' open · Peak hours are marked' : ''}</span>
+                  <span>{loading ? 'Checking the courts\u2026' : skippedFrom ? 'No more times ' + (skippedFrom === clubToday(clubTz) ? 'today' : 'on ' + fmtDay(skippedFrom, { weekday: 'long' })) + ', so here\u2019s ' + fmtDay(date, { weekday: 'long' }) + '.' : courts.length && !pick ? open + (open === 1 ? ' start' : ' starts') + ' open · Peak hours are marked' : ''}</span>
                 </div>
 
                 {list?.json?.closure?.message ? <div className="notice bad">{list.json.closure.message}</div> : null}

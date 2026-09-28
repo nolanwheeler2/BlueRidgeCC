@@ -25,16 +25,16 @@ import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented, TimeGroups } from '../components/Picker';
 import { api, money, newKey } from '../lib/verdeClient';
 import GroupPlayers, { groupFields } from '../components/GroupPlayers';
-import { useClub, useClubDate } from '../components/Club';
-import { fmtDay } from '../lib/clubTime';
+import { useClub, useOpenDay } from '../components/Club';
+import { clubToday, fmtDay } from '../lib/clubTime';
 
 const longDate = (d) => fmtDay(d, { weekday: 'long', month: 'long', day: 'numeric' });
 
 export default function TeeTimes() {
   const [courses, setCourses] = useState([]);
   const [courseId, setCourseId] = useState('');
-  /* Tomorrow at the club, once its time zone has loaded (commit 015). */
-  const [date, setDate] = useClubDate(1);
+  /* Today at the club, or the next day with something left to book (commit 024). */
+  const [date, setDate, skipIfEmpty, skippedFrom] = useOpenDay();
   const [players, setPlayers] = useState(2);
   const [cart, setCart] = useState(false);
   const [list, setList] = useState(null);
@@ -46,6 +46,7 @@ export default function TeeTimes() {
   const [bookKey, setBookKey] = useState(newKey());
   const { member } = useMember();
   const { tz: clubTz } = useClub();
+  const todayAtClub = clubToday(clubTz);
   /* A member's group: the other players, guests or invited members. */
   const [group, setGroup] = useState([{ kind: 'guest', name: '' }]);
   const memberBody = () => ({ ...groupFields(group), cart });
@@ -85,6 +86,11 @@ export default function TeeTimes() {
      (Verde commit 504). An all-day closure is said by the notice alone. */
   const blocked = (list?.json?.blocked || []).filter((b) => !(b.closure && b.window === 'All day'));
   const loading = !date || (courseId && !list);
+  /* Nothing left to book today, and nothing to explain why (no closure, no
+     release line, no reserved window): open the next day instead. */
+  useEffect(() => {
+    if (list?.ok) skipIfEmpty(!(list.json?.tee_times || []).length && !list.json?.closure && !list.json?.release && !(list.json?.blocked || []).length);
+  }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Layout title="Tee Times" eyebrow="Golf" intro="Choose a day and a time. Every price is the club's own, with the cart and tax shown before you book.">
@@ -114,7 +120,7 @@ export default function TeeTimes() {
                   <h2>{longDate(date)}</h2>
                   {/* Each part of the day counts its own times; this only says
                       when the sheet is still loading. */}
-                  <span>{loading ? 'Checking the tee sheet\u2026' : ''}</span>
+                  <span>{loading ? 'Checking the tee sheet\u2026' : skippedFrom ? 'No more times ' + (skippedFrom === todayAtClub ? 'today' : 'on ' + fmtDay(skippedFrom, { weekday: 'long' })) + ', so here\u2019s ' + fmtDay(date, { weekday: 'long' }) + '.' : ''}</span>
                 </div>
 
                 {release ? <div className="notice info">Tee times for {longDate(date)} are being released through a line. <a href={release.url} target="_blank" rel="noreferrer">Join the Line</a> to get your turn.</div> : null}

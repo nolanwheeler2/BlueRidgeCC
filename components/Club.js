@@ -12,7 +12,7 @@
 // visitor abroad at 11 PM never starts on the wrong date.
 // ============================================
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { api } from '../lib/verdeClient';
 import { DEFAULT_TZ, addDays, clubToday } from '../lib/clubTime';
 
@@ -41,4 +41,29 @@ export function useClubDate(offset = 0) {
   const [date, setDate] = useState(null);
   useEffect(() => { if (ready && date === null) setDate(addDays(clubToday(tz), offset)); }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
   return [date, setDate];
+}
+
+/* THE DAY A BOOKING PAGE OPENS ON (commit 024): today at the club - not
+   tomorrow, which skipped a day that was still ahead (at 12:30 AM Monday the
+   whole of Monday is bookable). If today has nothing left to book (late in the
+   evening, after the last time), the page moves on to the next day by itself,
+   up to three days, and says so - but only until the visitor picks a day
+   themselves; after that it never moves on its own.
+
+     const [date, pickDate, skipIfEmpty, skippedFrom] = useOpenDay();
+     useEffect(() => { if (answer) skipIfEmpty(nothingToBook); }, [answer]);
+*/
+export function useOpenDay() {
+  const [date, setDate] = useClubDate(0);
+  const picked = useRef(false);
+  const hops = useRef(0);
+  const [skippedFrom, setSkippedFrom] = useState(null);
+  const pick = (d) => { picked.current = true; setSkippedFrom(null); setDate(d); };
+  const skipIfEmpty = (empty) => {
+    if (picked.current || !empty || !date || hops.current >= 3) return;
+    hops.current += 1;
+    setSkippedFrom((f) => f || date);
+    setDate(addDays(date, 1));
+  };
+  return [date, pick, skipIfEmpty, skippedFrom];
 }

@@ -22,8 +22,8 @@ import Details from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented, TimeGroups } from '../components/Picker';
 import { api, newKey } from '../lib/verdeClient';
-import { useClubDate } from '../components/Club';
-import { fmtDay } from '../lib/clubTime';
+import { useClub, useOpenDay } from '../components/Club';
+import { clubToday, fmtDay } from '../lib/clubTime';
 
 const ampm = (t) => { if (!t) return ''; const [h, m] = t.split(':').map(Number); return ((h + 11) % 12 + 1) + ':' + String(m).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); };
 const OCCASIONS = ['Birthday', 'Anniversary', 'Business', 'Date Night', 'Celebration'];
@@ -32,8 +32,8 @@ const PARTY = [1, 2, 3, 4, 5, 6, 8, 10, 12];
 export default function Dining() {
   const [areas, setAreas] = useState(null);
   const [area, setArea] = useState('');
-  /* Tomorrow at the club, once its time zone has loaded (commit 015). */
-  const [date, setDate] = useClubDate(1);
+  /* Today at the club, or the next day with something left to book (commit 024). */
+  const [date, setDate, skipIfEmpty, skippedFrom] = useOpenDay();
   const [party, setParty] = useState(2);
   const [slots, setSlots] = useState(null);
   const [time, setTime] = useState(null);
@@ -63,6 +63,11 @@ export default function Dining() {
     meta: s.status === 'limited' ? 'Few left' : s.status === 'full' ? 'Full' : null, disabled: s.status === 'full',
   }));
   const loading = !!area && (!date || !slots);
+  const { tz: clubTz } = useClub();
+  /* No tables left today and no closure to explain it: open the next day (commit 024). */
+  useEffect(() => {
+    if (slots?.ok) skipIfEmpty(!(slots.json?.slots || []).some((x) => x.status !== 'full') && !slots.json?.closure);
+  }, [slots]); // eslint-disable-line react-hooks/exhaustive-deps
   const ready = !!who.name && !!who.email;
 
   return (
@@ -92,7 +97,7 @@ export default function Dining() {
 
                 <div className="tee-day">
                   <h2>{date ? fmtDay(date) : '\u00a0'}</h2>
-                  <span>{loading ? 'Checking the tables\u2026' : times.length && !time ? times.filter((t) => !t.disabled).length + ' times for ' + party + (party === 1 ? ' guest' : ' guests') : ''}</span>
+                  <span>{loading ? 'Checking the tables\u2026' : skippedFrom ? 'No more tables ' + (skippedFrom === clubToday(clubTz) ? 'today' : 'on ' + fmtDay(skippedFrom, { weekday: 'long' })) + ', so here\u2019s ' + fmtDay(date, { weekday: 'long' }) + '.' : times.length && !time ? times.filter((t) => !t.disabled).length + ' times for ' + party + (party === 1 ? ' guest' : ' guests') : ''}</span>
                 </div>
 
                 {slots?.json?.closure?.message ? <div className="notice bad">{slots.json.closure.message}</div> : null}

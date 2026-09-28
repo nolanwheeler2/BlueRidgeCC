@@ -22,16 +22,16 @@ import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented } from '../components/Picker';
 import { api, newKey, timeIn } from '../lib/verdeClient';
-import { useClub, useClubDate } from '../components/Club';
-import { fmtDay } from '../lib/clubTime';
+import { useClub, useOpenDay } from '../components/Club';
+import { clubToday, fmtDay } from '../lib/clubTime';
 
 const LENGTHS = [[30, '30 Min'], [60, '1 Hour'], [90, '90 Min'], [120, '2 Hours']];
 const longDate = (d) => fmtDay(d, { weekday: 'long', month: 'long', day: 'numeric' });
 const lengthWords = (m) => (m % 60 === 0 ? (m / 60) + (m === 60 ? ' hour' : ' hours') : m + ' minutes');
 
 export default function Simulators() {
-  /* Tomorrow at the club, once its time zone has loaded (commit 015). */
-  const [date, setDate] = useClubDate(1);
+  /* Today at the club, or the next day with something left to book (commit 024). */
+  const [date, setDate, skipIfEmpty, skippedFrom] = useOpenDay();
   const [duration, setDuration] = useState(60);
   const [party, setParty] = useState(2);
   const [list, setList] = useState(null);
@@ -63,6 +63,10 @@ export default function Simulators() {
   const p = person(who, member);
   const bays = list?.json?.bays || [];
   const loading = !date || !list;
+  /* Nothing left to book today and no closure to explain it: open the next day (commit 024). */
+  useEffect(() => {
+    if (list?.ok) skipIfEmpty(!(list.json?.bays || []).some((x) => (x.starts || []).length) && !list.json?.closure);
+  }, [list]); // eslint-disable-line react-hooks/exhaustive-deps
   const open = bays.reduce((n, b) => n + b.starts.length, 0);
 
   return (
@@ -84,7 +88,7 @@ export default function Simulators() {
 
                 <div className="tee-day">
                   <h2>{longDate(date)}</h2>
-                  <span>{loading ? 'Checking the bays\u2026' : bays.length && !pick ? open + (open === 1 ? ' start' : ' starts') + ' open for ' + lengthWords(duration) : ''}</span>
+                  <span>{loading ? 'Checking the bays\u2026' : skippedFrom ? 'No more times ' + (skippedFrom === clubToday(clubTz) ? 'today' : 'on ' + fmtDay(skippedFrom, { weekday: 'long' })) + ', so here\u2019s ' + fmtDay(date, { weekday: 'long' }) + '.' : bays.length && !pick ? open + (open === 1 ? ' start' : ' starts') + ' open for ' + lengthWords(duration) : ''}</span>
                 </div>
 
                 {list?.json?.closure?.message ? <div className="notice bad">{list.json.closure.message}</div> : null}
