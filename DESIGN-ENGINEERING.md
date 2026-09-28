@@ -66,7 +66,13 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Choosing a room folds the list** (Change Room). "Anything we should know?" goes with your details.
 - **`Summary`** takes `empty`, the line shown before anything is chosen, so each page says the right thing ("Choose a room…", "Choose a start…").
 
-## 9. Checking changes
+## 9. Stay and Play (`pages/packages.js`, commit 014)
+- **The one page that sells before it books.** Packages come first as **offers** (`.offers` / `.offer-card`): a gold "The Club's Favorite" on a featured package, the name, the description, everything included as a dashed list, the terms in one line (arrival days, deposit or paid in full, free cancellation window), and the price for the guests it covers, plus the price per additional guest. Photos follow the rooms rule: the package's own `image_url` when any has one.
+- **Choosing a package folds the list** (Change Package). Then **Dates and Tee Times:** the stay bar with Arrive, the nights and the departure the package sets, and Guests within the package's range. A warning shows if the arrival day isn't one the package allows.
+- **Each day of the stay** lists its tee times as compact tiles, with a counter ("1 of 2 chosen", green when complete). Picking works as before: one a day while there are enough days, and choosing past the count replaces the latest choice.
+- **Your Details** is its own panel. The card button names the amount ("Pay $194.70 Deposit by Card").
+
+## 10. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build

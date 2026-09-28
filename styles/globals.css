@@ -586,3 +586,26 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
 }
 /* A segmented control is only as wide as its choices, wherever it sits. */
 .seg-field .seg { align-self: flex-start; }
+
+/* ---------------------------------------------------------------- Stay and Play (commit 014) */
+/* A package, read like an offer: the words and what's included, then the price. */
+.offers { border-top: 1px solid var(--line); }
+.offer-card { display: grid; grid-template-columns: minmax(0, 1fr) 200px; gap: 32px; padding: 32px 0; border-bottom: 1px solid var(--line); }
+.offer-card.pictured { grid-template-columns: 240px minmax(0, 1fr) 200px; }
+.offer-main h3 { font-size: 32px; margin: 0 0 10px; letter-spacing: -.015em; }
+.offer-flag { margin: 0 0 8px; font-size: 13.5px; font-weight: 600; color: var(--brass); }
+.offer-main .checks { margin: 4px 0 16px; }
+@media (max-width: 760px) {
+  .offer-card, .offer-card.pictured { grid-template-columns: 1fr; gap: 16px; }
+}
+/* The departure a package sets, shown where a date field would be. */
+.stay-fixed { font-family: var(--display); font-size: 21px; padding: 11px 0; color: var(--ink); }
+/* Rounds chosen against rounds included. */
+.tee-day .count { font-weight: 500; }
+.tee-day .count.done { color: var(--ok); }
+@media (max-width: 560px) { .offer-main h3 { font-size: 28px; } }
+/* The package list sits right under the step bar, which draws the line. */
+.stepbar + .panel .offers { border-top: 0; }
+.stepbar + .panel .offer-card:first-child { padding-top: 4px; }
+/* The fixed departure lines up with the date field beside it. */
+.stay-fixed { padding: 10px 0; border: 1px solid transparent; line-height: normal; }
