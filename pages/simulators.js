@@ -79,6 +79,8 @@ export default function Simulators() {
                   ))}
                 </div>
                 {list && !bays.length && !list.json?.error ? <p className="empty" style={{ marginTop: 16 }}>No bays open {list.json?.reason ? '(' + String(list.json.reason).replace(/_/g, ' ') + ')' : 'this day'}. Try another day.</p> : null}
+                {/* Closed (Verde commit 486): why, and until when. */}
+                {list?.json?.closure?.message ? <div className="notice bad" style={{ marginTop: 16 }}>{list.json.closure.message}</div> : null}
                 <Notice result={list} />
               </div>
               {q ? (

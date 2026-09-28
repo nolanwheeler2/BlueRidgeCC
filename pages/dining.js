@@ -71,6 +71,8 @@ export default function Dining() {
                 <div className="options"><Segmented label="Guests" value={party} onChange={setParty} options={[[1, '1'], [2, '2'], [3, '3'], [4, '4'], [6, '6'], [8, '8']]} /></div>
                 {times.length ? <TimeGroups slots={times} value={time} onPick={(s) => setTime(s.key)} /> : null}
                 {slots && !times.length && !slots.json?.error ? <p className="empty" style={{ marginTop: 16 }}>No tables that day - try another.</p> : null}
+                {/* Closed (Verde commit 486): why, and until when. */}
+                {slots?.json?.closure?.message ? <div className="notice bad" style={{ marginTop: 16 }}>{slots.json.closure.message}</div> : null}
                 <Notice result={slots} />
               </div>
               {time ? (

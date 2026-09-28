@@ -87,6 +87,8 @@ export default function TeeTimes() {
                 {release ? <div className="notice info" style={{ marginTop: 18 }}>Tee times for {longDate(date)} are being released through a line. <a href={release.url} target="_blank" rel="noreferrer">Join the line</a> to get your turn.</div> : null}
                 {times.length ? <TimeGroups slots={times} value={slot?.start} onPick={(s) => doQuote(s.t)} tz={list?.json?.timezone} /> : null}
                 {list && !release && !times.length && !list.json?.error ? <p className="empty" style={{ marginTop: 16 }}>No tee times on {longDate(date)}. Try another day.</p> : null}
+                {/* Closed (Verde commit 486): why, and until when. */}
+                {list?.json?.closure?.message ? <div className="notice bad" style={{ marginTop: 16 }}>{list.json.closure.message}</div> : null}
                 <Notice result={list} />
               </div>
 

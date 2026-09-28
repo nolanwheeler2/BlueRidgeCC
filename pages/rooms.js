@@ -86,6 +86,8 @@ export default function Rooms() {
                   ))}
                 </div>
                 {list && !rooms.length && !list.json?.error ? <p className="empty" style={{ marginTop: 16 }}>No rooms free for those dates. Try moving a night either way.</p> : null}
+                {/* Closed (Verde commit 486): why, and until when. */}
+                {list?.json?.closure?.message ? <div className="notice bad" style={{ marginTop: 16 }}>{list.json.closure.message}</div> : null}
                 <Notice result={list} />
               </div>
               {q ? (

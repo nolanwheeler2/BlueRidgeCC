@@ -84,6 +84,8 @@ export default function Courts() {
                     </div>
                   ))}
                 </div>
+                {/* Closed (Verde commit 486): why, and until when. */}
+                {list?.json?.closure?.message ? <div className="notice bad" style={{ marginTop: 16 }}>{list.json.closure.message}</div> : null}
                 <Notice result={list} />
               </div>
               {q ? (
