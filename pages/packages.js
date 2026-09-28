@@ -75,12 +75,15 @@ export default function Packages() {
   const [picked, setPicked] = useState([]);
   const [who, setWho] = useState({ name: '', email: '', phone: '', requests: '' });
   const [done, setDone] = useState(null);
-  const { member } = useMember();
+  const { member, signIn } = useMember();
   const { tz } = useClub();
   const today = clubToday(tz);
 
   useEffect(() => { api('/packages').then(setList); }, []);
   const packages = list?.json?.packages || [];
+  /* The club asks guests to sign in to book a package (Verde commit 508):
+     said up front, not discovered at payment. A signed-in member books. */
+  const signInFirst = !member && !!list?.json?.booking?.account_required;
   const pictured = packages.some((x) => x.image_url);
 
   const choose = (p) => {
@@ -136,7 +139,11 @@ export default function Packages() {
                     </div>
                     <button className="btn ghost small" onClick={unchoose}>Change Package</button>
                   </div>
-                ) : !list ? (
+                ) : null}
+                {!pkg && signInFirst ? (
+                  <div className="notice info">{list.json.booking.message || 'This club asks you to sign in to book.'} <button className="linkish" onClick={signIn}>Sign In</button></div>
+                ) : null}
+                {pkg ? null : !list ? (
                   <div className="bays" aria-hidden="true" style={{ marginTop: 0 }}>{[0, 1].map((i) => <div key={i} className="bay"><span className="tile ghost" style={{ height: 160 }} /></div>)}</div>
                 ) : (
                   <div className="offers">
@@ -156,7 +163,9 @@ export default function Packages() {
                           <b>{rate(x.price.base_cents)}</b>
                           <span>for {x.price.covers_guests} {x.price.covers_guests === 1 ? 'guest' : 'guests'}</span>
                           {x.price.per_extra_guest_cents ? <small>{rate(x.price.per_extra_guest_cents)} for each additional guest</small> : null}
-                          <button className="btn" onClick={() => choose(x)}>Choose Package</button>
+                          {signInFirst
+                            ? <button className="btn" onClick={signIn}>Sign In to Book</button>
+                            : <button className="btn" onClick={() => choose(x)}>Choose Package</button>}
                         </div>
                       </article>
                     ))}
