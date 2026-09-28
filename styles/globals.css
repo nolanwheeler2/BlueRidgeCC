@@ -507,3 +507,30 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
 .site-head.solid .logo-on-photo { opacity: 0; }
 .site-foot .brand .logo { height: 104px; }
 @media (max-width: 560px) { .head-row { height: 76px; } .mobile-menu { inset: 76px 0 0; } .brand .logo { height: 54px; } .site-foot .brand .logo { height: 88px; } }
+
+/* ---------------------------------------------------------------- Simulators (commit 011) */
+/* A line of context at the end of a booking bar. */
+.bar-note { margin: 0 0 10px; color: var(--muted); font-size: 14.5px; flex: 1 1 220px; }
+/* Each bay (or court, room, dining area): a row with its name and its starts. */
+.bays { border-top: 1px solid var(--line); margin-top: 14px; }
+.bay { padding: 24px 0; border-bottom: 1px solid var(--line); }
+.bay-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+.bay-head h3 { font-size: 26px; margin: 0; letter-spacing: -.01em; }
+.bay-head span { font-size: 14.5px; color: var(--muted); }
+.bay .empty { margin: 0; }
+/* A start time on its own: the same tile, smaller. */
+.tiles.compact { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 6px; }
+.tiles.compact .tile { padding: 11px 14px; align-items: center; }
+.tiles.compact .tile-time { font-size: 21px; }
+/* A time never breaks across lines; on a phone the smaller tiles set it
+   a size down so four-digit times fit (commit 011). */
+.tile-time { white-space: nowrap; }
+@media (max-width: 560px) {
+  .tiles.compact { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+  .tiles.compact .tile { padding: 11px 8px; }
+  .tiles.compact .tile-time { font-size: 18px; }
+}
+/* Name, email and phone share one row where there's room. */
+.field.grow { flex: 1 1 180px; }
+/* The summary's reassurances: a wrapped line lines up with the text, not the dash. */
+.reassure li { padding-left: 22px; text-indent: -22px; }

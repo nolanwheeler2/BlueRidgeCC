@@ -47,7 +47,14 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Choosing a time folds the sheet** into one line with **Change Time**, so "Who's Playing" and the price sit right under it rather than below every tile.
 - **Loading** shows placeholder tiles. A **closure**, a **release line** and **API errors** each show as a notice under the day.
 
-## 6. Checking changes
+## 6. Simulators (`pages/simulators.js`, commit 011)
+- **Booking bar:** How Long (30 minutes to 2 hours), Players, and a line on what's included.
+- **The next two weeks,** then the day: **each bay as a row** (`.bays` / `.bay`) with its name, its simulator and capacity, and its open starts as compact tiles (`.tiles.compact`). The rows reuse no photo; the opener already shows the bays, and repeating one photo per row reads as a template.
+- **A bay too small for the party** says so instead of offering starts. A fully booked bay says "Booked for the day."
+- **Choosing a start folds the bays** into one line with Change Time, as on tee times.
+- **The row pattern** (`.bays`, `.bay`, `.bay-head`) is meant for courts, rooms and dining areas too.
+
+## 7. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build
