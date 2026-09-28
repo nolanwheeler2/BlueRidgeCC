@@ -11,14 +11,17 @@ import Scene from '../components/Scene';
 import { person } from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented, TimeGroups } from '../components/Picker';
-import { api, newKey, todayPlus } from '../lib/verdeClient';
+import { api, newKey } from '../lib/verdeClient';
+import { useClub, useClubDate } from '../components/Club';
+import { fmtDay } from '../lib/clubTime';
 
 const ampm = (t) => { const [h, m] = t.split(':').map(Number); return ((h + 11) % 12 + 1) + ':' + String(m).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); };
 
 export default function Dining() {
   const [areas, setAreas] = useState(null);
   const [area, setArea] = useState('');
-  const [date, setDate] = useState(todayPlus(1));
+  /* Tomorrow at the club, once its time zone has loaded (commit 015). */
+  const [date, setDate] = useClubDate(1);
   const [party, setParty] = useState(2);
   const [slots, setSlots] = useState(null);
   const [time, setTime] = useState(null);
@@ -30,12 +33,13 @@ export default function Dining() {
   useEffect(() => { if (member) setWho((w) => ({ ...w, name: w.name || member.name || '', email: w.email || member.email || '', phone: w.phone || member.phone || '' })); }, [member]);
 
   useEffect(() => { api('/dining').then((r) => { setAreas(r); if (r.json?.areas?.[0]) setArea(r.json.areas[0].id); }); }, []);
-  useEffect(() => { if (!area) return; setTime(null); setMade(null); setKey(newKey()); api('/dining/availability?area_id=' + area + '&date=' + date + '&party_size=' + party).then(setSlots); }, [area, date, party]);
+  useEffect(() => { if (!area || !date) return; setTime(null); setMade(null); setKey(newKey()); api('/dining/availability?area_id=' + area + '&date=' + date + '&party_size=' + party).then(setSlots); }, [area, date, party]);
   const reserve = async () => setMade(await api('/dining/reservations', { method: 'POST', key, body: { area_id: area, date, time, party_size: party, ...who } }));
   const all = areas?.json?.areas || [];
   const a = all.find((x) => x.id === area);
   const res = made?.json?.reservation;
-  const times = (slots?.json?.slots || []).map((s) => ({ key: s.time, iso: date + 'T' + s.time + ':00', label: ampm(s.time), sub: s.status === 'limited' ? 'Few left' : s.status === 'full' ? 'Full' : null, disabled: s.status === 'full' }));
+  /* Dining's times are the club's own wall clock ("18:30"): grouped by that hour, never converted. */
+  const times = (slots?.json?.slots || []).map((s) => ({ key: s.time, hour: Number(s.time.split(':')[0]), label: ampm(s.time), sub: s.status === 'limited' ? 'Few left' : s.status === 'full' ? 'Full' : null, disabled: s.status === 'full' }));
 
   return (
     <Layout title="Dining" eyebrow="The Grill & Terrace" intro="From breakfast before your round to supper on the terrace at last light.">
@@ -44,7 +48,7 @@ export default function Dining() {
           <StepBar steps={['Choose a table', 'Your details', 'Reserved']} at={res ? 2 : time ? 1 : 0} />
           {res ? (
             <Success title={res.status === 'waitlist' ? 'Request received' : 'Your table is booked'}>
-              {a?.name}, {ampm(time)} on {new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} for {party}. {res.status === 'waitlist' ? 'The club confirms these itself - you\u2019ll hear back shortly.' : 'See you then.'}
+              {a?.name}, {ampm(time)} on {fmtDay(date, { weekday: 'long', month: 'long', day: 'numeric' })} for {party}. {res.status === 'waitlist' ? 'The club confirms these itself - you\u2019ll hear back shortly.' : 'See you then.'}
             </Success>
           ) : (
             <>
@@ -96,7 +100,7 @@ export default function Dining() {
           <Result result={areas} title="GET /dining" />
         </div>
         <Summary title="Your table" scene="dining"
-          rows={time ? [['Where', a?.name], ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', ampm(time)], ['Guests', party]] : []}
+          rows={time ? [['Where', a?.name], ['Date', fmtDay(date, { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', ampm(time)], ['Guests', party]] : []}
           reassure={false}>
           {time && !res ? <button className="btn" disabled={!who.name || !who.email} onClick={reserve}>Reserve the table</button> : null}
         </Summary>

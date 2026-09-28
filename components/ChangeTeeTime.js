@@ -15,12 +15,16 @@ import { DateStrip, TimeGroups, Toggle } from './Picker';
 import GroupPlayers, { groupFields } from './GroupPlayers';
 import CardPayment from './CardPayment';
 import Result from './Result';
+import { useClub } from './Club';
+import { fmtTime, ymdOfIso } from '../lib/clubTime';
 
-const dayOf = (iso) => { const d = new Date(iso); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
 
 export default function ChangeTeeTime({ booking, onDone, onClose }) {
   const others = (booking.players || []).filter((p) => !p.is_me);
-  const [date, setDate] = useState(booking.start ? dayOf(booking.start) : todayPlus(1));
+  /* The round's day and times at the club, not in the visitor's zone (commit 015). */
+  const { tz } = useClub();
+  const dayOf = (iso) => ymdOfIso(iso, tz);
+  const [date, setDate] = useState(booking.start ? dayOf(booking.start) : todayPlus(1, tz));
   const [list, setList] = useState(null);
   const [start, setStart] = useState(booking.start);
   const [group, setGroup] = useState(others.map((p) => (p.member_id ? { kind: 'member', id: p.member_id, name: p.name, locked: !!p.accepted } : { kind: 'guest', name: p.name })));
@@ -42,7 +46,7 @@ export default function ChangeTeeTime({ booking, onDone, onClose }) {
   const q = quote?.json?.quote;
   const times = (list?.json?.tee_times || []).map((t) => ({ key: t.start, iso: t.start, label: t.time, sub: t.spots_remaining + ' open', t }));
   if (booking.start && dayOf(booking.start) === date && !times.some((t) => t.iso === booking.start)) {
-    times.unshift({ key: booking.start, iso: booking.start, label: new Date(booking.start).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }), sub: 'your time', t: { start: booking.start } });
+    times.unshift({ key: booking.start, iso: booking.start, label: fmtTime(booking.start, list?.json?.timezone || tz), sub: 'your time', t: { start: booking.start } });
   }
   const delta = q?.delta_cents ?? 0;
   const settle = !q ? '' : delta === 0 ? 'No change in price.'

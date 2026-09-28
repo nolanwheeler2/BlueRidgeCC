@@ -4,20 +4,24 @@
 import Link from 'next/link';
 import Scene from './Scene';
 import { money } from '../lib/verdeClient';
+import { useClub } from './Club';
+import { fmtDay, fmtTime, ymdOfIso } from '../lib/clubTime';
 
 export default function EventCard({ t, action }) {
-  const d = t.starts_at ? new Date(t.starts_at) : null;
+  /* The event's day and time at the club (commit 015). */
+  const { tz } = useClub();
+  const day = t.starts_at ? ymdOfIso(t.starts_at, tz) : null;
   const pct = t.capacity ? Math.min(100, Math.round(((t.entrants || 0) / t.capacity) * 100)) : null;
   return (
     <div className="ev">
       <div className="top">
         <Scene kind="events" height={110} />
-        {d ? <div className="badge"><b>{d.getDate()}</b><small>{d.toLocaleDateString('en-US', { month: 'short' })}</small></div> : null}
+        {day ? <div className="badge"><b>{Number(day.slice(8))}</b><small>{fmtDay(day, { month: 'short' })}</small></div> : null}
       </div>
       <div className="body">
         <h3>{t.title}</h3>
         <div className="meta">
-          {d ? d.toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''}
+          {day ? fmtDay(day, { weekday: 'long' }) + ', ' + fmtTime(t.starts_at, tz) : ''}
           {t.format ? ' · ' + String(t.format).replace(/_/g, ' ') : ''}
         </div>
         <div className="tags">

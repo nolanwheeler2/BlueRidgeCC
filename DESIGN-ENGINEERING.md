@@ -72,11 +72,27 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Each day of the stay** lists its tee times as compact tiles, with a counter ("1 of 2 chosen", green when complete). Picking works as before: one a day while there are enough days, and choosing past the count replaces the latest choice.
 - **Your Details** is its own panel. The card button names the amount ("Pay $194.70 Deposit by Card").
 
-## 10. Checking changes
+## 10. Dates and times: always the club's (commit 015)
+**The rule: every date and time on this site is on the club's clock and written the American way. Never the visitor's time zone, never their locale.**
+
+- **The zone:** `components/Club.js` → `ClubProvider` (in `pages/_app.js`) fetches `GET /club` once, and `useClub()` gives `{ club, tz, ready }`. `tz` is the club's `timezone`, falling back to `America/New_York` until it loads.
+- **Default days:** `useClubDate(offset)` returns a calendar date `offset` days from today **at the club**. It stays `null` until the zone is known, so a visitor abroad late at night never starts on the wrong day. Pages don't fetch until their date is set.
+- **`lib/clubTime.js`**, the only date math on the site:
+  - a **calendar date** is `'YYYY-MM-DD'`, formatted with `fmtDay` (at noon UTC with `timeZone: 'UTC'`, so no offset moves it);
+  - an **instant** is formatted with `fmtTime` / `fmtDateTime` in the club's zone;
+  - also `clubToday`, `addDays`, `daysBetween`, `weekdayOf`, `ymdOfIso`, `usDate` (MM/DD/YYYY) and `parseUs`.
+- **`components/DatePicker.js`** replaces the browser's own date field everywhere. That field shows the visitor's locale (dd/mm/yyyy abroad) and uses their clock.
+  - The field **always reads MM/DD/YYYY**. Digits fill in the slashes, and anything that isn't a real, allowed date reverts.
+  - The calendar marks today at the club, grays out days before `min`, and can limit weekdays (`allow`, used for package arrival days).
+  - `variant="tile"` is the day strip's "Other" tile. Its calendar floats above the page and follows the tile, because the strip scrolls sideways and would clip it.
+- **Time grouping:** `TimeGroups` groups by the hour **at the club** (`tz`, else the club's zone). A slot that is already club wall-clock time (dining's "18:30") passes `hour` and is never converted.
+- **Don't** use `new Date(...).toLocaleDateString()`, `getDate()`, `getDay()` or `<input type="date">` anywhere on this site. A search for them should find nothing outside `lib/clubTime.js`.
+
+## 11. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build
 node mock.js &            # answers /club, /tee-times, /tee-times/quote, /tournaments, /packages
 VERDE_API_KEY=test VERDE_API_BASE=http://localhost:3200 npx next start -p 3100
 ```
-Then screenshot at 1440 and 390 wide, including with the console open.
+Then screenshot at 1440 and 390 wide, including with the console open, **and once with the browser in another zone and locale** (Playwright: `timezone_id='America/Mexico_City', locale='es-MX'`) to prove every date still reads MM/DD/YYYY on the club's calendar.

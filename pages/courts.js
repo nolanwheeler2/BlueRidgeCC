@@ -23,14 +23,17 @@ import CardPayment from '../components/CardPayment';
 import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented, Toggle } from '../components/Picker';
-import { api, newKey, timeIn, todayPlus } from '../lib/verdeClient';
+import { api, newKey, timeIn } from '../lib/verdeClient';
+import { useClub, useClubDate } from '../components/Club';
+import { fmtDay } from '../lib/clubTime';
 
-const longDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+const longDate = (d) => fmtDay(d, { weekday: 'long', month: 'long', day: 'numeric' });
 const lengthWords = (m) => (m % 60 === 0 ? (m / 60) + (m === 60 ? ' hour' : ' hours') : m + ' minutes');
 const words = (v) => String(v || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 export default function Courts() {
-  const [date, setDate] = useState(todayPlus(1));
+  /* Tomorrow at the club, once its time zone has loaded (commit 015). */
+  const [date, setDate] = useClubDate(1);
   const [duration, setDuration] = useState(60);
   const [players, setPlayers] = useState(4);
   const [sport, setSport] = useState('all');
@@ -48,6 +51,7 @@ export default function Courts() {
   useEffect(() => {
     setPick(null); setQuote(null); setBooked(null); setPaid(null); setKey(newKey());
     setList(null);
+    if (!date) return;
     api('/courts?date=' + date + '&duration=' + duration).then(setList);
   }, [date, duration]);
   const choose = async (court, start, pd = paddles, b = balls) => { setPick({ court, start }); setBooked(null); setQuote(await api('/courts/quote', { method: 'POST', body: { court_id: court.id, start, duration, paddles: pd, balls: b } })); };
@@ -56,7 +60,8 @@ export default function Courts() {
     ...(account ? { payment: 'member_account', charge_account_id: account } : {}),
     expected_total_cents: quote?.json?.quote?.total_cents } }));
 
-  const tz = list?.json?.timezone;
+  const { tz: clubTz } = useClub();
+  const tz = list?.json?.timezone || clubTz;
   const q = quote?.json?.quote;
   const done = booked?.json?.reservation || paid;
   const ready = !!member || (who.name && who.email);
@@ -64,7 +69,7 @@ export default function Courts() {
   const all = list?.json?.courts || [];
   const sports = [...new Set(all.map((c) => c.sport).filter(Boolean))];
   const courts = sport === 'all' ? all : all.filter((c) => c.sport === sport);
-  const loading = !list;
+  const loading = !date || !list;
   const open = courts.reduce((n, c) => n + c.starts.length, 0);
   const pickedPeak = pick && pick.court.starts.find((s) => s.start === pick.start)?.peak;
 
@@ -150,7 +155,7 @@ export default function Courts() {
           )}
         </div>
         <Summary scene="court" title="Your Court Time" empty="Choose a start to see the details here."
-          rows={pick ? [['Court', pick.court.name], ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', timeIn(pick.start, tz) + (pickedPeak ? ' (peak)' : '')], ['Length', lengthWords(duration)], ['Players', players]] : []}
+          rows={pick ? [['Court', pick.court.name], ['Date', fmtDay(date, { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', timeIn(pick.start, tz) + (pickedPeak ? ' (peak)' : '')], ['Length', lengthWords(duration)], ['Players', players]] : []}
           lines={q ? [['Court', q.court_cents ?? q.subtotal_cents], ['Rentals', q.equipment_cents], ['Tax', q.tax_cents]] : []}
           total={q?.total_cents} fine={q ? 'Pay at the club, or by card now.' : null}>
           {q && !done ? (

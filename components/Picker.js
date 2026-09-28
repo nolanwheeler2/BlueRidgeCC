@@ -1,7 +1,9 @@
 // components/Picker.js
 // The booking pages' building blocks: a step bar, a strip of the next days,
 // segmented choices, and times grouped into morning, afternoon and evening.
-import { todayPlus } from '../lib/verdeClient';
+import { useClub } from './Club';
+import DatePicker from './DatePicker';
+import { addDays, clubToday, fmtDay } from '../lib/clubTime';
 
 export function StepBar({ steps, at }) {
   return (
@@ -11,25 +13,22 @@ export function StepBar({ steps, at }) {
   );
 }
 
+/* The next days AT THE CLUB (commit 015), then "Other" for a calendar that
+   always reads MM/DD/YYYY. */
 export function DateStrip({ value, onChange, days = 14, start = 0 }) {
-  const list = Array.from({ length: days }, (_, i) => todayPlus(start + i));
-  const inList = list.includes(value);
+  const { tz } = useClub();
+  const today = clubToday(tz);
+  const list = Array.from({ length: days }, (_, i) => addDays(today, start + i));
   return (
     <div className="datestrip">
-      {list.map((d) => {
-        const x = new Date(d + 'T12:00:00');
-        return (
-          <button key={d} className={'day' + (d === value ? ' on' : '')} onClick={() => onChange(d)}>
-            <small>{x.toLocaleDateString('en-US', { weekday: 'short' })}</small>
-            <b>{x.getDate()}</b>
-            <small>{x.toLocaleDateString('en-US', { month: 'short' })}</small>
-          </button>
-        );
-      })}
-      <label className={'day more' + (!inList ? ' on' : '')}>
-        <small>Other</small><b>+</b>
-        <input type="date" value={value} onChange={(e) => e.target.value && onChange(e.target.value)} aria-label="Choose another date" />
-      </label>
+      {list.map((d) => (
+        <button key={d} className={'day' + (d === value ? ' on' : '')} onClick={() => onChange(d)} aria-pressed={d === value}>
+          <small>{fmtDay(d, { weekday: 'short' })}</small>
+          <b>{Number(d.slice(8))}</b>
+          <small>{fmtDay(d, { month: 'short' })}</small>
+        </button>
+      ))}
+      <DatePicker variant="tile" value={value && !list.includes(value) ? value : null} onChange={onChange} min={today} />
     </div>
   );
 }
@@ -56,13 +55,18 @@ export function Toggle({ checked, onChange, title, detail }) {
 
 const PART = (h) => (h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening');
 
-/** slots: [{ key, iso, label, sub, meta, disabled }] - grouped by the club's
- *  local hour. `tiles` lays each time out as a tee sheet tile (commit 009):
- *  the time large, the price, and the places left. */
+/** slots: [{ key, iso, label, sub, meta, disabled, hour? }] - grouped by the
+ *  hour AT THE CLUB (commit 015): `tz`, else the club's zone; never the
+ *  visitor's. A slot that is already a club wall-clock time (dining's "18:30")
+ *  passes `hour` and is grouped by it as-is. `tiles` lays each time out as a
+ *  tee sheet tile (commit 009): the time large, the price, the places left. */
 export function TimeGroups({ slots, value, onPick, tz, tiles = false }) {
+  const { tz: clubTz } = useClub();
+  const zone = tz || clubTz;
   const groups = {};
   for (const s of slots) {
-    const h = Number(new Date(s.iso).toLocaleTimeString('en-US', { hour: 'numeric', hour12: false, timeZone: tz || undefined }));
+    const h = s.hour != null ? s.hour
+      : Number(new Date(s.iso).toLocaleTimeString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: zone }));
     (groups[PART(h)] = groups[PART(h)] || []).push(s);
   }
   return (

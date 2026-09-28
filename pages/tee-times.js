@@ -23,15 +23,18 @@ import CardPayment from '../components/CardPayment';
 import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented, Toggle, TimeGroups } from '../components/Picker';
-import { api, money, newKey, todayPlus } from '../lib/verdeClient';
+import { api, money, newKey } from '../lib/verdeClient';
 import GroupPlayers, { groupFields } from '../components/GroupPlayers';
+import { useClub, useClubDate } from '../components/Club';
+import { fmtDay } from '../lib/clubTime';
 
-const longDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+const longDate = (d) => fmtDay(d, { weekday: 'long', month: 'long', day: 'numeric' });
 
 export default function TeeTimes() {
   const [courses, setCourses] = useState([]);
   const [courseId, setCourseId] = useState('');
-  const [date, setDate] = useState(todayPlus(1));
+  /* Tomorrow at the club, once its time zone has loaded (commit 015). */
+  const [date, setDate] = useClubDate(1);
   const [players, setPlayers] = useState(2);
   const [cart, setCart] = useState(false);
   const [list, setList] = useState(null);
@@ -42,6 +45,7 @@ export default function TeeTimes() {
   const [paid, setPaid] = useState(null);
   const [bookKey, setBookKey] = useState(newKey());
   const { member } = useMember();
+  const { tz: clubTz } = useClub();
   /* A member's group: the other players, guests or invited members. */
   const [group, setGroup] = useState([{ kind: 'guest', name: '' }]);
   const memberBody = () => ({ ...groupFields(group), cart });
@@ -49,7 +53,7 @@ export default function TeeTimes() {
   useEffect(() => { api('/club').then((r) => { const cs = r.json?.club?.courses || []; setCourses(cs); setCourseId(cs[0]?.id || 'none'); }); }, []);
   const cid = courseId && courseId !== 'none' ? courseId : undefined;
   useEffect(() => {
-    if (!courseId) return;
+    if (!courseId || !date) return;
     setSlot(null); setQuote(null); setBooked(null); setPaid(null); setBookKey(newKey());
     setList(null);
     api('/tee-times?date=' + date + (cid ? '&course_id=' + cid : '')).then(setList);
@@ -77,7 +81,7 @@ export default function TeeTimes() {
     disabled: t.spots_remaining < size, t,
   }));
   const course = courses.find((c) => c.id === courseId);
-  const loading = courseId && !list;
+  const loading = !date || (courseId && !list);
 
   return (
     <Layout title="Tee Times" eyebrow="Golf" intro="Choose a day and a time. Every price is the club's own, with the cart and tax shown before you book.">
@@ -123,7 +127,7 @@ export default function TeeTimes() {
                 ) : loading ? (
                   <div className="tiles loading" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <span key={i} className="tile ghost" />)}</div>
                 ) : times.length ? (
-                  <TimeGroups tiles slots={times} value={slot?.start} onPick={(s) => doQuote(s.t)} tz={list?.json?.timezone} />
+                  <TimeGroups tiles slots={times} value={slot?.start} onPick={(s) => doQuote(s.t)} tz={list?.json?.timezone || clubTz} />
                 ) : null}
                 {list && !release && !times.length && !list.json?.error && !list.json?.closure ? <p className="empty">No tee times on {longDate(date)}. Try another day.</p> : null}
                 <Notice result={list} />
@@ -153,7 +157,7 @@ export default function TeeTimes() {
         <Summary
           scene="golf"
           title="Your Tee Time"
-          rows={slot ? [course ? ['Course', course.name] : null, ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })], ['Tee time', slot.time], ['Players', size], ['Holes', q?.holes || slot.holes]] : []}
+          rows={slot ? [course ? ['Course', course.name] : null, ['Date', fmtDay(date, { weekday: 'short', month: 'short', day: 'numeric' })], ['Tee time', slot.time], ['Players', size], ['Holes', q?.holes || slot.holes]] : []}
           lines={member && grp
             ? [...grp.players.filter((pl) => !pl.invited).map((pl) => [(pl.kind === 'host' ? 'You' : pl.name || 'Guest') + (pl.rate ? ' (' + pl.rate + ')' : ''), pl.price_cents + pl.cart_cents + pl.guest_fee_cents]),
                ['Service fee', grp.service_fee_cents], ['Tax', grp.tax_cents]]

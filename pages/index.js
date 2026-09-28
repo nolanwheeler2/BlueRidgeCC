@@ -15,6 +15,8 @@ import Layout from '../components/Layout';
 import Photo from '../components/Photo';
 import { useMember } from '../components/Member';
 import { api, money } from '../lib/verdeClient';
+import { useClub } from '../components/Club';
+import { fmtDay, fmtTime, ymdOfIso } from '../lib/clubTime';
 
 const OFFERS = [
   { avenue: 'lodging', href: '/rooms', photo: 'amenities-lodging', title: 'The Cottages', text: 'Eight cottages above the eighteenth green, with porches that catch the last of the light.', size: 'wide' },
@@ -29,6 +31,7 @@ function Arrow() {
 
 export default function Home() {
   const { member, signIn } = useMember();
+  const { tz } = useClub();
   const [club, setClub] = useState(null);
   const [events, setEvents] = useState(null);
   const [pkgs, setPkgs] = useState(null);
@@ -137,17 +140,18 @@ export default function Home() {
           {upcoming.length ? (
             <div className="calendar">
               {upcoming.map((t) => {
-                const d = t.starts_at ? new Date(t.starts_at) : null;
+                /* The event's day and time at the club (commit 015). */
+                const day = t.starts_at ? ymdOfIso(t.starts_at, tz) : null;
                 return (
                   <Link key={t.id} href="/tournaments" className="cal-row">
                     <div className="cal-date">
-                      <b>{d ? d.getDate() : ''}</b>
-                      <span>{d ? d.toLocaleDateString('en-US', { month: 'long' }) : 'To be announced'}</span>
+                      <b>{day ? Number(day.slice(8)) : ''}</b>
+                      <span>{day ? fmtDay(day, { month: 'long' }) : 'To be announced'}</span>
                     </div>
                     <div className="cal-what">
                       <h3>{t.title}</h3>
                       <span>
-                        {d ? d.toLocaleDateString('en-US', { weekday: 'long' }) + ', ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''}
+                        {day ? fmtDay(day, { weekday: 'long' }) + ', ' + fmtTime(t.starts_at, tz) : ''}
                         {t.entry_fee_cents ? ' · ' + money(t.entry_fee_cents) + ' entry' : ' · No entry fee'}
                         {t.spots_left != null ? ' · ' + (t.spots_left ? t.spots_left + ' places left' : 'Waitlist open') : ''}
                       </span>

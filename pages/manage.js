@@ -20,6 +20,8 @@ import Result from '../components/Result';
 import Notice from '../components/Notice';
 import { Segmented } from '../components/Picker';
 import { api, money } from '../lib/verdeClient';
+import { useClub } from '../components/Club';
+import { fmtDateTime, fmtDay } from '../lib/clubTime';
 
 const KINDS = {
   tee: ['Tee time', (id) => '/bookings/' + id + '/cancel'],
@@ -34,16 +36,16 @@ const LOOKUP = { tee: (id) => '/bookings/' + id, pkg: (id) => '/packages/booking
 /* GET /members/bookings types -> the cancel paths above. */
 const TYPE = { tee_time: 'tee', simulator: 'sim', court: 'court', dining: 'dining', lodging: 'room' };
 const TYPE_LABEL = { tee_time: 'Tee time', simulator: 'Simulator', court: 'Court', dining: 'Dining', lodging: 'Room' };
-const when = (iso) => {
+/* A booking's day or moment, at the club (commit 015): a date alone is the
+   club's calendar day; a timestamp is shown in the club's time zone. */
+const when = (iso, tz) => {
   if (!iso) return '';
-  const d = new Date(iso.length === 10 ? iso + 'T12:00:00' : iso);
-  return iso.length === 10
-    ? d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-    : d.toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  return iso.length === 10 ? fmtDay(iso) : fmtDateTime(iso, tz);
 };
 
 /* The member's own bookings and invitations - no reference needed. */
 function YourBookings() {
+  const { tz } = useClub();
   const [past, setPast] = useState(false);
   const [mine, setMine] = useState(null);
   const [cancel, setCancel] = useState(null);
@@ -66,7 +68,7 @@ function YourBookings() {
       <div key={b.type + b.id}>
       <div className="resource" style={{ gridTemplateColumns: 'minmax(0, 1fr)', marginTop: 12 }}>
         <div className="body">
-          <h3>{TYPE_LABEL[b.type] || 'Booking'} &middot; {when(b.start)}</h3>
+          <h3>{TYPE_LABEL[b.type] || 'Booking'} &middot; {when(b.start, tz)}</h3>
           <div className="tags">
             <span className={'tag' + (canceled ? '' : ' good')}>{canceled ? 'Canceled' : b.role === 'player' ? 'You’re playing' : 'Confirmed'}</span>
             {b.course ? <span className="tag">{b.course}</span> : null}
@@ -120,11 +122,11 @@ function YourBookings() {
           {invites.map((v) => (
             <div key={v.player_id} className="resource" style={{ gridTemplateColumns: 'minmax(0, 1fr)', marginTop: 12 }}>
               <div className="body">
-                <h3>{v.host} invited you &middot; {when(v.start)}</h3>
+                <h3>{v.host} invited you &middot; {when(v.start, tz)}</h3>
                 <div className="tags">
                   {v.course ? <span className="tag">{v.course}</span> : null}
                   <span className="tag">{v.share_cents > 0 ? 'Your share ' + money(v.share_cents) : 'Nothing to pay'}</span>
-                  {v.held_until ? <span className="tag">Held until {when(v.held_until)}</span> : null}
+                  {v.held_until ? <span className="tag">Held until {when(v.held_until, tz)}</span> : null}
                 </div>
                 {payingFor === v.player_id ? (
                   <div style={{ marginTop: 12 }}>
@@ -195,7 +197,7 @@ export default function Manage() {
           {b && kind === 'pkg' ? (
             <div className="resource" style={{ gridTemplateColumns: 'minmax(0, 1fr)', marginTop: 18 }}>
               <div className="body">
-                <h3>{b.package?.name || 'Package'}, {b.guests} {b.guests === 1 ? 'guest' : 'guests'}, arriving {new Date(b.arrival + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</h3>
+                <h3>{b.package?.name || 'Package'}, {b.guests} {b.guests === 1 ? 'guest' : 'guests'}, arriving {fmtDay(b.arrival)}</h3>
                 <div className="tags">
                   <span className={'tag' + (canceled ? '' : ' good')}>{canceled ? 'Canceled' : 'Confirmed'}</span>
                   {b.confirmation ? <span className="tag">Confirmation {b.confirmation}</span> : null}
@@ -203,14 +205,14 @@ export default function Manage() {
                   <span className="tag">{money(b.paid_cents)} paid of {money(b.total_cents)}</span>
                   {b.balance_cents > 0 ? <span className="tag">{money(b.balance_cents)} due on arrival</span> : null}
                 </div>
-                {(b.tee_times || []).map((t, i) => <p key={i} style={{ margin: '8px 0 0' }}>Tee time: {new Date(t.start).toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}, {t.players} {t.players === 1 ? 'player' : 'players'}</p>)}
+                {(b.tee_times || []).map((t, i) => <p key={i} style={{ margin: '8px 0 0' }}>Tee time: {fmtDateTime(t.start, tz, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}, {t.players} {t.players === 1 ? 'player' : 'players'}</p>)}
                 {(b.credits || []).map((c) => <p key={c.kind} style={{ margin: '4px 0 0' }}>{c.kind === 'food_and_beverage' ? 'Food and drink' : 'Pro shop'} credit: {money(c.remaining_cents)} left of {money(c.amount_cents)}</p>)}
               </div>
             </div>
           ) : b ? (
             <div className="resource" style={{ gridTemplateColumns: 'minmax(0, 1fr)', marginTop: 18 }}>
               <div className="body">
-                <h3>{b.players} {b.players === 1 ? 'player' : 'players'}{b.start ? ', ' + new Date(b.start).toLocaleString('en-US', { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}</h3>
+                <h3>{b.players} {b.players === 1 ? 'player' : 'players'}{b.start ? ', ' + fmtDateTime(b.start, tz, { weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : ''}</h3>
                 <div className="tags">
                   <span className={'tag' + (canceled ? '' : ' good')}>{canceled ? 'Canceled' : 'Confirmed'}</span>
                   {b.holes ? <span className="tag">{b.holes} holes</span> : null}

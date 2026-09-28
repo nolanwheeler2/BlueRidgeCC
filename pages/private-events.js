@@ -8,7 +8,10 @@ import Notice from '../components/Notice';
 import Success from '../components/Success';
 import Scene from '../components/Scene';
 import { useMember } from '../components/Member';
-import { api, newKey, todayPlus } from '../lib/verdeClient';
+import { api, newKey } from '../lib/verdeClient';
+import DatePicker from '../components/DatePicker';
+import { useClub } from '../components/Club';
+import { addDays, clubToday } from '../lib/clubTime';
 
 const LABEL = { wedding: 'Wedding', corporate: 'Corporate', banquet: 'Banquet', celebration: 'Celebration', golf_outing: 'Golf outing', meeting: 'Meeting', other: 'Something else' };
 const SPACES = [
@@ -19,7 +22,10 @@ const SPACES = [
 
 export default function PrivateEvents() {
   const [info, setInfo] = useState(null);
-  const [f, setF] = useState({ name: '', email: '', phone: '', occasion: 'wedding', guests: 100, preferred_date: todayPlus(180), message: '' });
+  const { tz, ready } = useClub();
+  const [f, setF] = useState({ name: '', email: '', phone: '', occasion: 'wedding', guests: 100, preferred_date: '', message: '' });
+  /* Six months out at the club, once its zone is known (commit 015). */
+  useEffect(() => { if (ready) setF((x) => (x.preferred_date ? x : { ...x, preferred_date: addDays(clubToday(tz), 180) })); }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
   const [sent, setSent] = useState(null);
   const [key] = useState(newKey());
   const { member } = useMember();
@@ -53,7 +59,7 @@ export default function PrivateEvents() {
                   <label className="field grow">Phone<input value={f.phone} onChange={set('phone')} autoComplete="tel" /></label>
                   <label className="field">Occasion<select value={f.occasion} onChange={set('occasion')}>{(e?.occasions || Object.keys(LABEL)).map((o) => <option key={o} value={o}>{LABEL[o] || o}</option>)}</select></label>
                   <label className="field">Guests<input type="number" value={f.guests} onChange={set('guests')} style={{ width: 110 }} /></label>
-                  <label className="field">Preferred date<input type="date" value={f.preferred_date} onChange={set('preferred_date')} /></label>
+                  <DatePicker label="Preferred date" id="preferred" value={f.preferred_date} min={clubToday(tz)} onChange={(d) => setF((x) => ({ ...x, preferred_date: d }))} />
                   <label className="field" style={{ flex: '1 1 100%' }}>Tell us about it<textarea rows={4} value={f.message} onChange={set('message')} placeholder="Ceremony on the eighteenth green, dinner for 120, a band until eleven..." /></label>
                 </div>
                 <Notice result={sent} kind="bad" />

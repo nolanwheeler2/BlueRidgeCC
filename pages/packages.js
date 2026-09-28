@@ -23,12 +23,16 @@ import CardPayment from '../components/CardPayment';
 import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, Segmented } from '../components/Picker';
-import { api, money, todayPlus } from '../lib/verdeClient';
+import { api, money } from '../lib/verdeClient';
+import DatePicker from '../components/DatePicker';
+import { useClub } from '../components/Club';
+import { addDays, clubToday, fmtDateTime, fmtDay, weekdayOf } from '../lib/clubTime';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const fmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-const longFmt = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+/* Calendar dates at the club (lib/clubTime, commit 015). */
+const fmt = (d) => fmtDay(d, { weekday: 'short', month: 'short', day: 'numeric' });
+const longFmt = (d) => fmtDay(d);
 const rate = (c) => (c % 100 === 0 ? '$' + (c / 100).toLocaleString('en-US') : money(c));
 
 /* The next date on or after `from` that the package allows arriving. */
@@ -36,8 +40,8 @@ function nextArrival(p, from) {
   const days = p.arrival_days?.length ? p.arrival_days : [0, 1, 2, 3, 4, 5, 6];
   const start = p.season?.starts && p.season.starts > from ? p.season.starts : from;
   for (let i = 0; i < 14; i++) {
-    const d = new Date(start + 'T12:00:00'); d.setDate(d.getDate() + i);
-    if (days.includes(d.getDay())) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const d = addDays(start, i);
+    if (days.includes(weekdayOf(d))) return d;
   }
   return start;
 }
@@ -72,6 +76,8 @@ export default function Packages() {
   const [who, setWho] = useState({ name: '', email: '', phone: '', requests: '' });
   const [done, setDone] = useState(null);
   const { member } = useMember();
+  const { tz } = useClub();
+  const today = clubToday(tz);
 
   useEffect(() => { api('/packages').then(setList); }, []);
   const packages = list?.json?.packages || [];
@@ -80,7 +86,7 @@ export default function Packages() {
   const choose = (p) => {
     setPkg(p); setDone(null); setPicked([]);
     setGuests(p.price.min_guests);
-    setArrival(nextArrival(p, todayPlus(3)));
+    setArrival(nextArrival(p, addDays(today, 3)));
   };
   const unchoose = () => { setPkg(null); setAvail(null); setPicked([]); };
 
@@ -164,17 +170,15 @@ export default function Packages() {
                 <div className="panel">
                   <h2>Dates and Tee Times</h2>
                   <div className="stay-bar" style={{ marginTop: 18 }}>
-                    <label className="stay-date">
-                      <span>Arrive</span>
-                      <input type="date" value={arrival} min={todayPlus(0)} onChange={(e) => e.target.value && setArrival(e.target.value)} />
-                    </label>
+                    <DatePicker label="Arrive" id="arrive" value={arrival} min={today} onChange={setArrival}
+                      allow={pkg.arrival_days?.length && pkg.arrival_days.length < 7 ? pkg.arrival_days : undefined} />
                     {a?.quote.nights ? <div className="stay-nights">{a.quote.nights} {a.quote.nights === 1 ? 'night' : 'nights'}</div> : null}
                     {a?.quote.nights ? (
                       <div className="stay-date"><span>Leave</span><div className="stay-fixed">{fmt(a.quote.departure)}</div></div>
                     ) : null}
                     {guestOptions.length > 1 ? <Segmented label="Guests" value={guests} onChange={setGuests} options={guestOptions} /> : null}
                   </div>
-                  {pkg.arrival_days?.length && pkg.arrival_days.length < 7 && arrival && !pkg.arrival_days.includes(new Date(arrival + 'T12:00:00').getDay())
+                  {pkg.arrival_days?.length && pkg.arrival_days.length < 7 && arrival && !pkg.arrival_days.includes(weekdayOf(arrival))
                     ? <div className="notice warn">This package arrives on {pkg.arrival_days.map((d) => DAYS[d]).join(' or ')}. Choose one of those days.</div> : null}
                   {avail && !a ? <Notice result={avail} /> : null}
                   {a && a.rooms_free === 0 ? <div className="notice warn">No cottages are free for those dates. Try another arrival day.</div> : null}
@@ -221,7 +225,7 @@ export default function Packages() {
           )}
         </div>
         <Summary title="Your Package" scene="stayplay" empty="Choose a package to see your stay here."
-          rows={pkg ? [['Package', pkg.name], ['Arrive', arrival ? fmt(arrival) : '\u2014'], ...(a?.quote.nights ? [['Leave', fmt(a.quote.departure)]] : []), ['Guests', guests], ...picked.map((s, i) => ['Tee time ' + (i + 1), new Date(s).toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' })])] : []}
+          rows={pkg ? [['Package', pkg.name], ['Arrive', arrival ? fmt(arrival) : '\u2014'], ...(a?.quote.nights ? [['Leave', fmt(a.quote.departure)]] : []), ['Guests', guests], ...picked.map((s, i) => ['Tee time ' + (i + 1), fmtDateTime(s, a?.timezone || tz, { weekday: 'short', hour: 'numeric', minute: '2-digit' })])] : []}
           lines={a ? [[pkg.name + ', ' + guests + (guests === 1 ? ' guest' : ' guests'), a.quote.total_cents]] : []}
           total={a?.quote.total_cents}
           fine={a ? (a.quote.deposit ? money(a.quote.due_now_cents) + ' today, ' + money(a.quote.total_cents - a.quote.due_now_cents) + ' on arrival.' : 'Paid in full today.') + ' Free to cancel until ' + pkg.cancellation.free_until_days_before + ' days before you arrive' + (pkg.cancellation.late_fee_percent ? '; after that, ' + pkg.cancellation.late_fee_percent + '% is kept.' : '.') : null}>

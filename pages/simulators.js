@@ -21,14 +21,17 @@ import CardPayment from '../components/CardPayment';
 import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
 import { StepBar, DateStrip, Segmented } from '../components/Picker';
-import { api, newKey, timeIn, todayPlus } from '../lib/verdeClient';
+import { api, newKey, timeIn } from '../lib/verdeClient';
+import { useClub, useClubDate } from '../components/Club';
+import { fmtDay } from '../lib/clubTime';
 
 const LENGTHS = [[30, '30 Min'], [60, '1 Hour'], [90, '90 Min'], [120, '2 Hours']];
-const longDate = (d) => new Date(d + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+const longDate = (d) => fmtDay(d, { weekday: 'long', month: 'long', day: 'numeric' });
 const lengthWords = (m) => (m % 60 === 0 ? (m / 60) + (m === 60 ? ' hour' : ' hours') : m + ' minutes');
 
 export default function Simulators() {
-  const [date, setDate] = useState(todayPlus(1));
+  /* Tomorrow at the club, once its time zone has loaded (commit 015). */
+  const [date, setDate] = useClubDate(1);
   const [duration, setDuration] = useState(60);
   const [party, setParty] = useState(2);
   const [list, setList] = useState(null);
@@ -43,6 +46,7 @@ export default function Simulators() {
   useEffect(() => {
     setPick(null); setQuote(null); setBooked(null); setPaid(null); setKey(newKey());
     setList(null);
+    if (!date) return;
     api('/simulators?date=' + date + '&duration=' + duration).then(setList);
   }, [date, duration]);
   const choose = async (bay, start) => { setPick({ bay, start }); setBooked(null); setQuote(await api('/simulators/quote', { method: 'POST', body: { bay_id: bay.id, start, duration } })); };
@@ -51,13 +55,14 @@ export default function Simulators() {
     ...(account ? { payment: 'member_account', charge_account_id: account } : {}),
     expected_total_cents: quote?.json?.quote?.total_cents } }));
 
-  const tz = list?.json?.timezone;
+  const { tz: clubTz } = useClub();
+  const tz = list?.json?.timezone || clubTz;
   const q = quote?.json?.quote;
   const done = booked?.json?.reservation || paid;
   const ready = !!member || (who.name && who.email);
   const p = person(who, member);
   const bays = list?.json?.bays || [];
-  const loading = !list;
+  const loading = !date || !list;
   const open = bays.reduce((n, b) => n + b.starts.length, 0);
 
   return (
@@ -135,7 +140,7 @@ export default function Simulators() {
           )}
         </div>
         <Summary scene="sim" title="Your Bay Time" empty="Choose a start to see the details here."
-          rows={pick ? [['Bay', pick.bay.name], ['Date', new Date(date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', timeIn(pick.start, tz)], ['Length', lengthWords(duration)], ['Players', party]] : []}
+          rows={pick ? [['Bay', pick.bay.name], ['Date', fmtDay(date, { weekday: 'short', month: 'short', day: 'numeric' })], ['Time', timeIn(pick.start, tz)], ['Length', lengthWords(duration)], ['Players', party]] : []}
           lines={q ? [['Bay time', q.subtotal_cents], ['Tax', q.tax_cents]] : []}
           total={q?.total_cents} fine={q ? 'Pay at the club, or by card now.' : null}>
           {q && !done ? (

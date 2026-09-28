@@ -21,7 +21,7 @@ import { useMember } from './Member';
 import DevConsole from './DevConsole';
 import Photo from './Photo';
 import { PAGE_PHOTOS } from '../lib/photos';
-import { api } from '../lib/verdeClient';
+import { useClub } from './Club';
 
 const NAV = [
   { label: 'Golf', items: [['/tee-times', 'Tee Times', 'Eighteen holes on the ridge'], ['/simulators', 'Simulators', 'Indoor bays, all year']] },
@@ -31,23 +31,6 @@ const NAV = [
   { label: 'Events', items: [['/tournaments', 'Tournaments', 'Scrambles, member-guest, leagues'], ['/private-events', 'Private Events', 'Weddings, outings, meetings']] },
 ];
 
-/* The club's details, once per visit. */
-let clubPromise = null;
-function useClub() {
-  const [club, setClub] = useState(null);
-  useEffect(() => {
-    if (!clubPromise) clubPromise = api('/club').then((r) => r?.json?.club || null).catch(() => null);
-    let live = true;
-    clubPromise.then((c) => { if (live) setClub(c); });
-    return () => { live = false; };
-  }, []);
-  return club;
-}
-
-/* The club's logo (commit 010): the navy-and-gold original on light
-   backgrounds, a light version (gold kept) over photographs and in the footer.
-   Both are in /public/brand. The header shows whichever suits it, so the swap
-   happens with the header's own fade. */
 function Logo({ variant = 'both' }) {
   if (variant === 'light') return <img src="/brand/logo-light.png" className="logo" alt="Blue Ridge Country Club" width="252" height="120" />;
   return (
@@ -62,7 +45,7 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
   const { dev, setDev } = useDevMode();
   const { pathname } = useRouter();
   const { member, ready, signIn, signOut } = useMember();
-  const club = useClub();
+  const { club } = useClub();
   const [menuOpen, setMenuOpen] = useState(false);
   const [acct, setAcct] = useState(false);
   const [solid, setSolid] = useState(false);
