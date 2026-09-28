@@ -23,6 +23,7 @@ export default async function handler(req, res) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(req.query)) { if (k !== 'path' && typeof v === 'string') qs.set(k, v); }
   const path = '/' + parts.join('/') + (qs.toString() ? '?' + qs.toString() : '');
+  const started = Date.now();
   const out = await verde(path, {
     method: req.method,
     body: req.method === 'POST' ? (req.body || {}) : undefined,
@@ -33,5 +34,14 @@ export default async function handler(req, res) {
      off, expired): forget it here too, so the site shows them signed out. */
   if (out.status === 401 && out.json?.error?.code === 'member_token_invalid') res.setHeader('Set-Cookie', cookie(MEMBER_COOKIE, '', { maxAge: 0 }));
   if (out.replayed) res.setHeader('Idempotent-Replayed', 'true');
+  /* WHERE THE TIME GOES (commit 030): the Network tab's Timing shows this
+     site's own time, the trip to Verde, and Verde's breakdown of its part -
+     so a slow request says which leg is slow. Times only. */
+  const timing = [
+    'site;dur=' + Math.max(0, Date.now() - started - (out.tripMs || 0)) + ';desc="This site"',
+    'verde-trip;dur=' + (out.tripMs || 0) + ';desc="Trip to Verde and back"',
+  ];
+  if (out.verdeTiming) timing.push(out.verdeTiming);
+  res.setHeader('Server-Timing', timing.join(', '));
   return res.status(out.status).json(out.json);
 }
