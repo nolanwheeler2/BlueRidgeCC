@@ -10,7 +10,9 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 | | |
 |---|---|
 | **Type** | **Newsreader** (display, optical sizes, light weights for big headlines) and **Hanken Grotesk** (text and controls), loaded in `pages/_document.js`. Avoid Cormorant, Playfair and Inter; they read as generated. |
-| **Color** | Ink `#14202b`, paper `#f7f4ee` / `#efeae1`, lines `#ddd6c9` / `#cbc2b2`, **one** brass accent (`#94703a`) used sparingly. Moss, amber and clay are for status only. |
+| **Color** | Taken from the logo (commit 010): its navy as ink (`#0b2540`) and its gold as the **one** accent (`#997531`), used sparingly. Paper `#f7f4ee` / `#efeae1`, lines `#ddd6c9` / `#cbc2b2`. Moss, amber and clay are for status only. |
+| **Logo** | `public/brand/logo.png` (navy and gold, for light backgrounds) and `logo-light.png` (light, gold kept, for over photos and the dark footer), both cut from the club's artwork with its own transparency. The header shows the light one over the opening photo and crossfades to the original once it turns solid. Favicon and touch icon: the peak and flag (`public/favicon.ico`, `apple-touch-icon.png`, `brand/icon-512.png`). |
+| **No processor names** | Nothing public-facing names the card processor. The card field is the processor's secure form, but the site's own words never say "Stripe". |
 | **Shape** | 2px radius on controls, 4px on panels. Hairlines between items, not boxes around them. |
 | **Photography** | Every photo is from Verde's licensed library (`lib/photos.js`). No illustrations anywhere. |
 | **Copy** | **Title Case** for headings, buttons, links and menu items ("Reserve a Tee Time"). **Sentence case** for body text and field labels. American English. No spaced all-caps labels, no testimonial cards, no dashes used as punctuation in the UI. |

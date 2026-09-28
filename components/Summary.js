@@ -25,7 +25,7 @@ export default function Summary({ title = 'Your Booking', scene, rows = [], line
         {reassure ? (
           <ul className="reassure">
             <li>Confirmation emailed right away</li>
-            <li>Card payments handled securely by Stripe</li>
+            <li>Card details are encrypted and never stored by the club</li>
             <li>Change or cancel from your confirmation</li>
           </ul>
         ) : null}

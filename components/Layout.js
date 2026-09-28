@@ -44,12 +44,17 @@ function useClub() {
   return club;
 }
 
-function Mark({ light }) {
+/* The club's logo (commit 010): the navy-and-gold original on light
+   backgrounds, a light version (gold kept) over photographs and in the footer.
+   Both are in /public/brand. The header shows whichever suits it, so the swap
+   happens with the header's own fade. */
+function Logo({ variant = 'both' }) {
+  if (variant === 'light') return <img src="/brand/logo-light.png" className="logo" alt="Blue Ridge Country Club" width="252" height="120" />;
   return (
-    <svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" className="mark">
-      <path d="M2 24 L11 13 L16 18.5 L21.5 10 L30 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-      <path d="M2 28 H30" stroke="currentColor" strokeWidth="1.6" opacity={light ? 0.7 : 0.55} />
-    </svg>
+    <>
+      <img src="/brand/logo-light.png" className="logo logo-on-photo" alt="Blue Ridge Country Club" width="252" height="120" />
+      <img src="/brand/logo.png" className="logo logo-on-paper" alt="" aria-hidden="true" width="252" height="120" />
+    </>
   );
 }
 
@@ -84,14 +89,13 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
         <title>{title ? title + ' | Blue Ridge Country Club' : 'Blue Ridge Country Club'}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="Golf, dining and cottages on the ridge. Book tee times, simulators, courts, rooms and tables online." />
-        <meta name="theme-color" content="#14202b" />
+        <meta name="theme-color" content="#0b2540" />
       </Head>
 
       <header className={'site-head' + (solid || menuOpen ? ' solid' : '')}>
         <div className="wrap head-row">
           <Link href="/" className="brand" aria-label="Blue Ridge Country Club, home">
-            <Mark light={!solid} />
-            <span className="brand-name">Blue Ridge<em>Country Club</em></span>
+            <Logo />
           </Link>
 
           <nav className="primary" aria-label="Main">
@@ -169,7 +173,7 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
         <div className="wrap">
           <div className="foot-top">
             <div className="foot-club">
-              <Link href="/" className="brand"><Mark light /><span className="brand-name">Blue Ridge<em>Country Club</em></span></Link>
+              <Link href="/" className="brand" aria-label="Blue Ridge Country Club, home"><Logo variant="light" /></Link>
               <p>{club?.location || 'On the ridge, western North Carolina'}</p>
               {club?.phone ? <p><a href={'tel:' + club.phone.replace(/[^\d+]/g, '')}>{club.phone}</a></p> : null}
             </div>
