@@ -14,7 +14,7 @@ export default function Notice({ result, kind }) {
     return (
       <div className="notice info" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
         <span>{err.code === 'members_only' ? 'The club books this for members.' : 'Members book this online.'} Sign in with your Verde account to see times.</span>
-        <button className="btn small" onClick={signIn}>Sign in</button>
+        <button className="btn small" onClick={signIn}>Sign In</button>
       </div>
     );
   }

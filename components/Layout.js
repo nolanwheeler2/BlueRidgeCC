@@ -24,11 +24,11 @@ import { PAGE_PHOTOS } from '../lib/photos';
 import { api } from '../lib/verdeClient';
 
 const NAV = [
-  { label: 'Golf', items: [['/tee-times', 'Tee times', 'Eighteen holes on the ridge'], ['/simulators', 'Simulators', 'Indoor bays, all year']] },
+  { label: 'Golf', items: [['/tee-times', 'Tee Times', 'Eighteen holes on the ridge'], ['/simulators', 'Simulators', 'Indoor bays, all year']] },
   { label: 'Racquets', href: '/courts' },
-  { label: 'Stay', items: [['/rooms', 'Cottages', 'Above the eighteenth green'], ['/packages', 'Stay and play', 'A room, your rounds, dinner']] },
+  { label: 'Stay', items: [['/rooms', 'Cottages', 'Above the eighteenth green'], ['/packages', 'Stay and Play', 'A room, your rounds, dinner']] },
   { label: 'Dining', href: '/dining' },
-  { label: 'Events', items: [['/tournaments', 'Tournaments', 'Scrambles, member-guest, leagues'], ['/private-events', 'Private events', 'Weddings, outings, meetings']] },
+  { label: 'Events', items: [['/tournaments', 'Tournaments', 'Scrambles, member-guest, leagues'], ['/private-events', 'Private Events', 'Weddings, outings, meetings']] },
 ];
 
 /* The club's details, once per visit. */
@@ -65,7 +65,7 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
 
   useEffect(() => {
     const v = new URLSearchParams(window.location.search).get('signin');
-    if (v) setSigninNote({ cancelled: 'Sign-in was canceled.', expired: 'That sign-in took too long. Please try again.', failed: 'Sign-in didn’t go through. Please try again.' }[v] || null);
+    if (v) setSigninNote({ canceled: 'Sign-in was canceled.', cancelled: 'Sign-in was canceled.', expired: 'That sign-in took too long. Please try again.', failed: 'Sign-in didn’t go through. Please try again.' }[v] || null);
     const onScroll = () => setSolid(window.scrollY > 24);
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -119,12 +119,12 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
                 {acct ? (
                   <div className="acct-menu">
                     <b>{member.name || 'Signed in'}</b><span>{member.email}</span>
-                    <Link href="/manage">Your bookings</Link>
-                    <button onClick={async () => { setAcct(false); await signOut(); }}>Sign out</button>
+                    <Link href="/manage">Your Bookings</Link>
+                    <button onClick={async () => { setAcct(false); await signOut(); }}>Sign Out</button>
                   </div>
                 ) : null}
               </div>
-            ) : <button className="text-btn signin" onClick={signIn}>Member sign in</button>) : null}
+            ) : <button className="text-btn signin" onClick={signIn}>Member Sign In</button>) : null}
             <Link href="/tee-times" className="btn reserve">Reserve</Link>
             <button className="menu-btn" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-label="Menu">
               <span /><span />
@@ -142,9 +142,9 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
             </div>
           ))}
           <div className="mm-group">
-            <h3>Your visit</h3>
-            <Link href="/manage">Your bookings</Link>
-            {!member ? <button className="text-btn" onClick={signIn}>Member sign in</button> : null}
+            <h3>Your Visit</h3>
+            <Link href="/manage">Your Bookings</Link>
+            {!member ? <button className="text-btn" onClick={signIn}>Member Sign In</button> : null}
           </div>
         </div>
       </div>
@@ -174,16 +174,16 @@ export default function Layout({ title, intro, eyebrow, hero, children }) {
               {club?.phone ? <p><a href={'tel:' + club.phone.replace(/[^\d+]/g, '')}>{club.phone}</a></p> : null}
             </div>
             <div className="foot-cols">
-              <div><h4>Play</h4><Link href="/tee-times">Tee times</Link><Link href="/simulators">Simulators</Link><Link href="/courts">Courts</Link></div>
-              <div><h4>Stay</h4><Link href="/rooms">Cottages</Link><Link href="/packages">Stay and play</Link><Link href="/dining">Dining</Link></div>
-              <div><h4>The club</h4><Link href="/tournaments">Tournaments</Link><Link href="/private-events">Private events</Link><Link href="/manage">Your bookings</Link></div>
+              <div><h4>Play</h4><Link href="/tee-times">Tee Times</Link><Link href="/simulators">Simulators</Link><Link href="/courts">Courts</Link></div>
+              <div><h4>Stay</h4><Link href="/rooms">Cottages</Link><Link href="/packages">Stay and Play</Link><Link href="/dining">Dining</Link></div>
+              <div><h4>The Club</h4><Link href="/tournaments">Tournaments</Link><Link href="/private-events">Private Events</Link><Link href="/manage">Your Bookings</Link></div>
             </div>
           </div>
           <div className="foot-base">
             <span>&copy; {year} Blue Ridge Country Club</span>
             <span className="foot-verde">Reservations by Verde</span>
             <button className={'dev-toggle' + (dev ? ' on' : '')} onClick={() => setDev(!dev)} title="Ctrl+Shift+D">
-              {dev ? 'Developer view on' : 'Developer view'}
+              {dev ? 'Developer View On' : 'Developer View'}
             </button>
           </div>
         </div>

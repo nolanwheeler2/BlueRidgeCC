@@ -14,7 +14,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { api, money, newKey } from '../lib/verdeClient';
 import Result from './Result';
 
-export default function CardPayment({ start, onDone, label = 'Pay by card' }) {
+export default function CardPayment({ start, onDone, label = 'Pay by Card' }) {
   const [payment, setPayment] = useState(null);
   const [started, setStarted] = useState(null);
   const [done, setDone] = useState(null);
@@ -57,11 +57,11 @@ export default function CardPayment({ start, onDone, label = 'Pay by card' }) {
   return (
     <div>
       {!payment ? (
-        <button className="btn ghost" style={{ width: '100%' }} disabled={busy} onClick={begin}>{busy ? 'One moment...' : label}</button>
+        <button className="btn ghost" style={{ width: '100%' }} disabled={busy} onClick={begin}>{busy ? 'One Moment\u2026' : label}</button>
       ) : !done?.ok ? (
         <div className="card-box">
           <div ref={box} />
-          <button className="btn" style={{ width: '100%', marginTop: 14 }} disabled={busy} onClick={pay}>{busy ? 'Processing...' : 'Pay ' + money(payment.amount_cents)}</button>
+          <button className="btn" style={{ width: '100%', marginTop: 14 }} disabled={busy} onClick={pay}>{busy ? 'Processing\u2026' : 'Pay ' + money(payment.amount_cents)}</button>
         </div>
       ) : null}
       {err ? <div className="notice bad">{err}</div> : null}

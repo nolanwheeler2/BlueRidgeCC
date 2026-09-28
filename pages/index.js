@@ -17,10 +17,10 @@ import { useMember } from '../components/Member';
 import { api, money } from '../lib/verdeClient';
 
 const OFFERS = [
-  { avenue: 'lodging', href: '/rooms', photo: 'amenities-lodging', title: 'The cottages', text: 'Eight cottages above the eighteenth green, with porches that catch the last of the light.', size: 'wide' },
+  { avenue: 'lodging', href: '/rooms', photo: 'amenities-lodging', title: 'The Cottages', text: 'Eight cottages above the eighteenth green, with porches that catch the last of the light.', size: 'wide' },
   { avenue: 'courts', href: '/courts', photo: 'amenities-courts', title: 'Racquets', text: 'Lit courts for pickleball and tennis, with paddles and balls at the desk.' },
   { avenue: 'simulators', href: '/simulators', photo: 'amenities-simulator', title: 'Simulators', text: 'Launch-monitor bays by the hour. Play the ridge in January.' },
-  { avenue: 'packages', href: '/packages', photo: 'clubhouse-patio', title: 'Stay and play', text: 'A cottage, your rounds and dinner on the terrace, booked in one go.', size: 'wide' },
+  { avenue: 'packages', href: '/packages', photo: 'clubhouse-patio', title: 'Stay and Play', text: 'A cottage, your rounds and dinner on the terrace, booked in one go.', size: 'wide' },
 ];
 
 function Arrow() {
@@ -47,12 +47,12 @@ export default function Home() {
       <Photo name="course-hero-dawn" focus="50% 60%" priority alt="The first fairway at dawn" />
       <div className="hero-shade" />
       <div className="wrap hero-copy">
-        <h1>Golf where the<br />mountains <em>turn blue.</em></h1>
+        <h1>Golf Where the<br />Mountains <em>Turn Blue.</em></h1>
         <div className="hero-side">
           <p>Eighteen holes on the ridgeline, a clubhouse for the long lunch, and a cottage for the night after.</p>
           <div className="actions">
-            <Link href="/tee-times" className="btn light">Reserve a tee time</Link>
-            <Link href="/rooms" className="btn on-photo">Stay the night</Link>
+            <Link href="/tee-times" className="btn light">Reserve a Tee Time</Link>
+            <Link href="/rooms" className="btn on-photo">Stay the Night</Link>
           </div>
         </div>
       </div>
@@ -84,18 +84,18 @@ export default function Home() {
             <Photo name="course-flag" className="inset" alt="" />
           </div>
           <div className="feature-copy">
-            <h2 className="section-title">Laid along the ridgeline</h2>
+            <h2 className="section-title">Laid Along the Ridgeline</h2>
             <p>The front nine plays through hardwoods and back toward the clubhouse. The back nine turns uphill, and from the fourteenth tee you can see into three states on a clear morning.</p>
             <p>Walkers are welcome all day. Carts are waiting for the climb.</p>
             {c?.courses?.length ? <p className="caption">{c.courses.map((x) => x.name + (x.holes ? ', ' + x.holes + ' holes' : '')).join(' · ')}</p> : null}
-            <div style={{ marginTop: 28 }}><Link href="/tee-times" className="link-arrow">See tee times <Arrow /></Link></div>
+            <div style={{ marginTop: 28 }}><Link href="/tee-times" className="link-arrow">See Tee Times <Arrow /></Link></div>
           </div>
         </div>
       </section>
 
       <section className="block">
         <div className="wrap">
-          <h2 className="section-title">Beyond the eighteenth</h2>
+          <h2 className="section-title">Beyond the Eighteenth</h2>
           <p className="lead">Everything the club offers books online here, at the club&rsquo;s own prices.</p>
           <div className="offer-grid">
             {OFFERS.map((o) => {
@@ -109,7 +109,7 @@ export default function Home() {
                       <h3>{o.title}</h3>
                       <p>{text}</p>
                     </div>
-                    <span className="go">{off ? 'By phone' : <Arrow />}</span>
+                    <span className="go">{off ? 'By Phone' : <Arrow />}</span>
                   </div>
                 </Link>
               );
@@ -122,17 +122,17 @@ export default function Home() {
         <Photo name="dining-room" focus="50% 50%" alt="The Grill, set for dinner" />
         <div className="band-shade" />
         <div className="wrap">
-          <h2>Supper at last light</h2>
+          <h2>Supper at Last Light</h2>
           <p>The Grill does breakfast before your round and a proper dinner after it. On warm nights, the terrace is the best table in the county.</p>
-          <Link href="/dining" className="btn light">Reserve a table</Link>
+          <Link href="/dining" className="btn light">Reserve a Table</Link>
         </div>
       </section>
 
       <section className="block">
         <div className="wrap">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'end', gap: 24, flexWrap: 'wrap', marginBottom: 36 }}>
-            <h2 className="section-title" style={{ margin: 0 }}>On the calendar</h2>
-            <Link href="/tournaments" className="link-arrow">All tournaments <Arrow /></Link>
+            <h2 className="section-title" style={{ margin: 0 }}>On the Calendar</h2>
+            <Link href="/tournaments" className="link-arrow">All Tournaments <Arrow /></Link>
           </div>
           {upcoming.length ? (
             <div className="calendar">
@@ -169,10 +169,10 @@ export default function Home() {
             <Photo name="events-wedding" className="tall" alt="A ceremony on the lawn above eighteen" />
           </div>
           <div className="feature-copy">
-            <h2 className="section-title">Weddings, outings and long dinners</h2>
+            <h2 className="section-title">Weddings, Outings and Long Dinners</h2>
             <p>The lawn above eighteen seats two hundred for a ceremony, and the ballroom opens onto the terrace for the reception. Outings get the whole course and a shotgun start.</p>
             <p>Tell us the date and the headcount, and the events office will come back with a plan and a price.</p>
-            <div style={{ marginTop: 28 }}><Link href="/private-events" className="link-arrow">Plan an event <Arrow /></Link></div>
+            <div style={{ marginTop: 28 }}><Link href="/private-events" className="link-arrow">Plan an Event <Arrow /></Link></div>
           </div>
         </div>
       </section>
@@ -180,17 +180,17 @@ export default function Home() {
       <section className="block">
         <div className="wrap visit">
           <div>
-            <h3>Finding us</h3>
+            <h3>Finding Us</h3>
             <p>{c?.location || 'On the ridge, western North Carolina'}.<br />Twenty minutes from town, the last ten of them uphill.</p>
           </div>
           <div>
-            <h3>The pro shop</h3>
+            <h3>The Pro Shop</h3>
             <p>Open from first light to dusk.{c?.phone ? <><br /><a href={'tel:' + c.phone.replace(/[^\d+]/g, '')}>{c.phone}</a></> : null}</p>
           </div>
           <div>
             <h3>Members</h3>
             <p>
-              {member ? <>Welcome back, {(member.name || '').split(' ')[0] || 'member'}. <Link href="/manage">Your bookings</Link></> : <>Sign in to book at member rates and see your bookings. <button className="linkish" onClick={signIn}>Member sign in</button></>}
+              {member ? <>Welcome back, {(member.name || '').split(' ')[0] || 'member'}. <Link href="/manage">Your Bookings</Link></> : <>Sign in to book at member rates and see your bookings. <button className="linkish" onClick={signIn}>Member Sign In</button></>}
             </p>
           </div>
         </div>

@@ -459,3 +459,40 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
   .brand-name em { font-size: 12.5px; }
   .hero-side .actions .btn { flex: 1 1 100%; }
 }
+
+/* ---------------------------------------------------------------- Tee times (commit 009) */
+/* The booking bar: course, players and the cart, in one row above the days. */
+.tee-bar { display: flex; flex-wrap: wrap; gap: 20px 32px; align-items: flex-end; padding-bottom: 26px; margin-bottom: 26px; border-bottom: 1px solid var(--line); }
+/* The day being shown, as a heading over its tee sheet. */
+.tee-day { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin: 30px 0 4px; }
+.tee-day h2 { font-size: 30px; margin: 0; letter-spacing: -.012em; }
+.tee-day span { font-size: 14.5px; color: var(--muted); }
+/* The tee sheet: one tile per time. */
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 8px; }
+.tile { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; padding: 14px 16px 13px; background: var(--white); border: 1px solid var(--line); border-radius: var(--r1); color: var(--ink); cursor: pointer; font-family: var(--sans); transition: border-color .15s var(--ease), background .15s var(--ease), transform .15s var(--ease); }
+.tile:hover:not(:disabled) { border-color: var(--ink); }
+.tile:active:not(:disabled) { transform: translateY(1px); }
+.tile:focus-visible { outline: 2px solid var(--brass-2); outline-offset: 2px; }
+.tile-time { font-family: var(--display); font-size: 25px; line-height: 1.1; letter-spacing: -.01em; }
+.tile-price { font-size: 14.5px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.tile-meta { font-size: 13px; color: var(--muted); }
+.tile.on { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.tile.on .tile-meta { color: #c3c9ce; }
+.tile:disabled { cursor: not-allowed; background: transparent; color: var(--faint); }
+.tile:disabled .tile-price { font-weight: 500; text-decoration: line-through; text-decoration-color: var(--line-2); }
+.tile:disabled .tile-meta { color: var(--faint); }
+.tile.ghost { height: 92px; background: linear-gradient(90deg, var(--paper-2), #f3efe7, var(--paper-2)); background-size: 200% 100%; border-color: transparent; animation: shimmer 1.4s linear infinite; cursor: default; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.timegroups .tiles { margin-top: 2px; }
+/* The chosen time, folded (commit 009). */
+.chosen { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; padding: 18px 20px; background: var(--white); border: 1px solid var(--ink); border-radius: var(--r1); margin-top: 14px; }
+.chosen b { display: block; font-family: var(--display); font-weight: 400; font-size: 32px; line-height: 1.05; letter-spacing: -.01em; }
+.chosen span { display: block; color: var(--muted); font-size: 15px; margin-top: 4px; }
+/* The step bar stays on one line on a phone, and scrolls if it must. */
+@media (max-width: 640px) {
+  .stepbar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .stepbar::-webkit-scrollbar { display: none; }
+  .stepbar li { padding-right: 18px; white-space: nowrap; font-size: 14px; }
+  .tee-bar { gap: 16px 20px; }
+  .tee-day h2 { font-size: 26px; }
+}

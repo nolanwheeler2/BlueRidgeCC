@@ -120,12 +120,12 @@ export default function DevConsole() {
       <aside className={'dc ' + (open ? 'open' : '')} aria-hidden={!open}>
         <header className="dc-head">
           <div className="dc-title">
-            <b>Developer console</b>
+            <b>Developer Console</b>
             <span>Verde Booking API &middot; {API_BASE.replace(/^https?:\/\//, '')}</span>
           </div>
           <div className="dc-actions">
             <button className="dc-btn" onClick={() => { setCalls([]); setPicked(null); }}>Clear</button>
-            <button className="dc-btn" onClick={() => setDev(false)}>Turn off</button>
+            <button className="dc-btn" onClick={() => setDev(false)}>Turn Off</button>
             <button className="dc-x" onClick={() => setOpen(false)} aria-label="Close">&times;</button>
           </div>
         </header>
@@ -160,8 +160,8 @@ export default function DevConsole() {
                   {sel.response?.error ? <><dt>Error</dt><dd className="err"><code>{sel.response.error.code}</code> {sel.response.error.message}</dd></> : null}
                 </dl>
                 <div className="dc-tools">
-                  <Copy text={curlFor(sel)} label="Copy as curl" />
-                  <Copy text={JSON.stringify(sel.response, null, 2)} label="Copy response" />
+                  <Copy text={curlFor(sel)} label="Copy as cURL" />
+                  <Copy text={JSON.stringify(sel.response, null, 2)} label="Copy Response" />
                 </div>
                 {sel.request ? <><h4>Sent</h4><Json value={sel.request} /></> : null}
                 <h4>Received</h4>

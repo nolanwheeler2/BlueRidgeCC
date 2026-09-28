@@ -56,8 +56,10 @@ export function Toggle({ checked, onChange, title, detail }) {
 
 const PART = (h) => (h < 12 ? 'Morning' : h < 17 ? 'Afternoon' : 'Evening');
 
-/** slots: [{ key, iso, label, sub, disabled }] - grouped by the club's local hour. */
-export function TimeGroups({ slots, value, onPick, tz }) {
+/** slots: [{ key, iso, label, sub, meta, disabled }] - grouped by the club's
+ *  local hour. `tiles` lays each time out as a tee sheet tile (commit 009):
+ *  the time large, the price, and the places left. */
+export function TimeGroups({ slots, value, onPick, tz, tiles = false }) {
   const groups = {};
   for (const s of slots) {
     const h = Number(new Date(s.iso).toLocaleTimeString('en-US', { hour: 'numeric', hour12: false, timeZone: tz || undefined }));
@@ -68,8 +70,14 @@ export function TimeGroups({ slots, value, onPick, tz }) {
       {['Morning', 'Afternoon', 'Evening'].filter((g) => groups[g]).map((g) => (
         <div key={g} className="tg">
           <div className="tg-h">{g}<span>{groups[g].length} {groups[g].length === 1 ? 'time' : 'times'}</span></div>
-          <div className="pills">
-            {groups[g].map((s) => (
+          <div className={tiles ? 'tiles' : 'pills'}>
+            {groups[g].map((s) => tiles ? (
+              <button key={s.key} disabled={s.disabled} className={'tile' + (value === s.key ? ' on' : '')} onClick={() => onPick(s)} aria-pressed={value === s.key}>
+                <span className="tile-time">{s.label}</span>
+                {s.sub ? <span className="tile-price">{s.sub}</span> : null}
+                {s.meta ? <span className="tile-meta">{s.meta}</span> : null}
+              </button>
+            ) : (
               <button key={s.key} disabled={s.disabled} className={'pill' + (value === s.key ? ' on' : '')} onClick={() => onPick(s)}>
                 {s.label}{s.sub ? <small>{s.sub}</small> : null}
               </button>

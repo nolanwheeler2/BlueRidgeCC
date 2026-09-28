@@ -43,7 +43,7 @@ export default function GroupPlayers({ value, onChange, max = 3 }) {
           ) : (
             <>
               <input className="gp-input" value={p.name} placeholder={'Guest ' + (i + 2) + ' (name)'} onChange={(e) => set(i, { kind: 'guest', name: e.target.value })} />
-              <button className="link" onClick={() => { setOpenAt(openAt === i ? null : i); setQ(''); }}>{openAt === i ? 'Close' : 'Invite a member'}</button>
+              <button className="link" onClick={() => { setOpenAt(openAt === i ? null : i); setQ(''); }}>{openAt === i ? 'Close' : 'Invite a Member'}</button>
               <button className="link" onClick={() => remove(i)}>Remove</button>
             </>
           )}
@@ -52,14 +52,14 @@ export default function GroupPlayers({ value, onChange, max = 3 }) {
               <input autoFocus value={q} placeholder="Search members by name" onChange={(e) => setQ(e.target.value)} />
               {found.map((m) => (
                 <button key={m.id} className="gp-found" onClick={() => { set(i, { kind: 'member', id: m.id, name: m.name }); setOpenAt(null); setQ(''); }}>
-                  {m.name} <span>invite</span>
+                  {m.name} <span>Invite</span>
                 </button>
               ))}
             </div>
           ) : null}
         </div>
       ))}
-      {value.length < max ? <button className="btn ghost small" style={{ marginTop: 10 }} onClick={() => onChange([...value, { kind: 'guest', name: '' }])}>+ Add a player</button> : null}
+      {value.length < max ? <button className="btn ghost small" style={{ marginTop: 10 }} onClick={() => onChange([...value, { kind: 'guest', name: '' }])}>Add a Player</button> : null}
     </div>
   );
 }

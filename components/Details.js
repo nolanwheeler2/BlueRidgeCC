@@ -26,7 +26,7 @@ export default function Details({ who, setWho, phone = true, extra = null }) {
         {phone ? <label className="field grow">Phone<input value={who.phone} onChange={(e) => setWho({ ...who, phone: e.target.value })} autoComplete="tel" /></label> : null}
       </div>
       {extra}
-      <p className="fine" style={{ marginTop: 12 }}>Have a Verde account? <button className="linkish" onClick={signIn}>Sign in</button> to book as yourself.</p>
+      <p className="fine" style={{ marginTop: 12 }}>Have a Verde account? <button className="linkish" onClick={signIn}>Sign In</button> to book as yourself.</p>
     </>
   );
 }

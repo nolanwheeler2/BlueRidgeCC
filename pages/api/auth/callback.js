@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
   const state = readCookie(req, 'br_state');
   if (!state || req.query.state !== state) return go(back + sep + 'signin=expired');
-  if (req.query.error) return go(back + sep + 'signin=cancelled');
+  if (req.query.error) return go(back + sep + 'signin=canceled');
 
   const out = await verde('/members/token', { method: 'POST', body: { code: String(req.query.code || ''), redirect_uri: returnAddress(req) } });
   if (out.status !== 200 || !out.json?.member_token) {

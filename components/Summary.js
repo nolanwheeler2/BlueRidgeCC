@@ -5,7 +5,7 @@
 import { money } from '../lib/verdeClient';
 import Scene from './Scene';
 
-export default function Summary({ title = 'Your booking', scene, rows = [], lines = [], total, children, fine, reassure = true }) {
+export default function Summary({ title = 'Your Booking', scene, rows = [], lines = [], total, children, fine, reassure = true }) {
   const shown = rows.filter(Boolean);
   const priced = lines.filter((l) => l && l[1]);
   return (
