@@ -56,7 +56,17 @@ const MEAL = (h) => (h < 11 ? 'Breakfast' : h < 16 ? 'Lunch' : 'Dinner');
  *  passes `hour` and is grouped by it as-is. `tiles` lays each time out as a
  *  tee sheet tile (commit 009): the time large, the price, the places left;
  *  `compact` makes them the smaller start tiles (dining, commit 016). */
-export function TimeGroups({ slots, value, onPick, tz, tiles = false, compact = false, meals = false }) {
+/* A reserved window drawn inside the sheet, where its gap is (commit 022):
+   "4:00 PM to 6:00 PM · Reserved for the Monday Men's League". */
+function Band({ b }) {
+  return (
+    <div className={'band-row ' + (b.closure ? 'closed' : b.members_only ? 'members' : 'reserved')} role="note">
+      <b>{b.window}</b><span>{b.label}</span>
+    </div>
+  );
+}
+
+export function TimeGroups({ slots, value, onPick, tz, tiles = false, compact = false, meals = false, bands = [] }) {
   const { tz: clubTz } = useClub();
   const zone = tz || clubTz;
   const groups = {};
@@ -66,13 +76,33 @@ export function TimeGroups({ slots, value, onPick, tz, tiles = false, compact = 
     const part = (meals ? MEAL : PART)(h);
     (groups[part] = groups[part] || []).push(s);
   }
+  /* Reserved windows (Verde's `blocked`, commit 022) join the part of the day
+     they start in, placed before the first time at or after their start. A
+     part of the day that's all reserved still shows, with just its band. */
+  const bandsBy = {};
+  for (const b of bands || []) {
+    const h = b.start ? Number(new Date(b.start).toLocaleTimeString('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: zone })) : 0;
+    const part = (meals ? MEAL : PART)(h);
+    (bandsBy[part] = bandsBy[part] || []).push(b);
+    if (!groups[part]) groups[part] = [];
+  }
+  const withBands = (part) => {
+    const out = [];
+    const pending = (bandsBy[part] || []).slice().sort((a, b) => String(a.start).localeCompare(String(b.start)));
+    for (const s of groups[part]) {
+      while (pending.length && s.iso && Date.parse(pending[0].start) <= Date.parse(s.iso)) out.push({ band: pending.shift() });
+      out.push({ slot: s });
+    }
+    for (const b of pending) out.push({ band: b });
+    return out;
+  };
   return (
     <div className="timegroups">
       {(meals ? ['Breakfast', 'Lunch', 'Dinner'] : ['Morning', 'Afternoon', 'Evening']).filter((g) => groups[g]).map((g) => (
         <div key={g} className="tg">
-          <div className="tg-h">{g}<span>{groups[g].length} {groups[g].length === 1 ? 'time' : 'times'}</span></div>
+          <div className="tg-h">{g}<span>{groups[g].length ? groups[g].length + (groups[g].length === 1 ? ' time' : ' times') : 'No times'}</span></div>
           <div className={tiles ? 'tiles' + (compact ? ' compact' : '') : 'pills'}>
-            {groups[g].map((s) => tiles ? (
+            {withBands(g).map(({ band, slot: s }, i) => band ? <Band key={'band-' + i} b={band} /> : tiles ? (
               <button key={s.key} disabled={s.disabled} className={'tile' + (value === s.key ? ' on' : '')} onClick={() => onPick(s)} aria-pressed={value === s.key}>
                 <span className="tile-time">{s.label}</span>
                 {s.sub ? <span className="tile-price">{s.sub}</span> : null}

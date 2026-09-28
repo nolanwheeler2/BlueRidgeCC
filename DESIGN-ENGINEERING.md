@@ -141,7 +141,12 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Every choice is a segmented control, including yes-or-no ones** (commit 021). Tee times' cart is **Getting around: Walking | Cart**, with its advice in the bar's note line. Court rentals are **Paddles: None | 2 | 4** beside **Balls: None | A Fresh Can**. Changing a tee time offers **Walking | Carts for the group**. The old toggle card (`Toggle`, `.togglecard`) is **removed** from `components/Picker.js` and the stylesheet, so a row of choices can't mix shapes again.
 - **Field labels are sentence case** ("Getting around", "How long"); headings, buttons and menu items are Title Case.
 
-## 16. Checking changes
+## 16. Reserved windows inside the tee sheet (commit 022)
+- **Verde returns every window that keeps someone from booking** (`GET /tee-times` → `blocked`, Verde commit 504): `{ start, end, kind, label, window, members_only, closure, recurring }`, with the label already in golfer's words ("Reserved for the Monday Men's League", "Members only", "Closed").
+- **`TimeGroups bands={…}`** (`components/Picker.js`) draws each as a full-width **band** (`.band-row`) inside the tile grid, in the part of the day it starts, **before the first time at or after its start**. That's exactly where the gap is. A part of the day that's all reserved still shows, with just its band ("No times").
+- **Band styles:** reserved is quiet (paper, gray rule), members-only carries the gold rule, a closure the clay. An **all-day closure** is said by the red notice alone, not repeated as a band.
+
+## 17. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build

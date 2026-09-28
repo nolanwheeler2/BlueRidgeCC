@@ -81,6 +81,9 @@ export default function TeeTimes() {
     disabled: t.spots_remaining < size, t,
   }));
   const course = courses.find((c) => c.id === courseId);
+  /* Every window that keeps someone from booking today, with what it's for
+     (Verde commit 504). An all-day closure is said by the notice alone. */
+  const blocked = (list?.json?.blocked || []).filter((b) => !(b.closure && b.window === 'All day'));
   const loading = !date || (courseId && !list);
 
   return (
@@ -129,10 +132,12 @@ export default function TeeTimes() {
                   </div>
                 ) : loading ? (
                   <div className="tiles loading" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <span key={i} className="tile ghost" />)}</div>
-                ) : times.length ? (
-                  <TimeGroups tiles slots={times} value={slot?.start} onPick={(s) => doQuote(s.t)} tz={list?.json?.timezone || clubTz} />
+                ) : times.length || blocked.length ? (
+                  /* Reserved windows sit inside the sheet where their gap is
+                     (Verde's `blocked`, commit 022). */
+                  <TimeGroups tiles slots={times} bands={blocked} value={slot?.start} onPick={(s) => doQuote(s.t)} tz={list?.json?.timezone || clubTz} />
                 ) : null}
-                {list && !release && !times.length && !list.json?.error && !list.json?.closure ? <p className="empty">No tee times on {longDate(date)}. Try another day.</p> : null}
+                {list && !release && !times.length && !blocked.length && !list.json?.error && !list.json?.closure ? <p className="empty">No tee times on {longDate(date)}. Try another day.</p> : null}
                 <Notice result={list} />
               </div>
 
