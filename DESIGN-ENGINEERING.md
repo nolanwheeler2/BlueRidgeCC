@@ -54,7 +54,12 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Choosing a start folds the bays** into one line with Change Time, as on tee times.
 - **The row pattern** (`.bays`, `.bay`, `.bay-head`) is meant for courts, rooms and dining areas too.
 
-## 7. Checking changes
+## 7. Courts (`pages/courts.js`, commit 012)
+- **The bay-row pattern.** The booking bar adds **Sport** (All plus each sport the club's courts have) when there's more than one, filtered in the page from `GET /courts`.
+- **Each court's row** shows its sport and surface. **Peak starts** carry a gold "Peak" (`.tile.peak`), because they're priced higher.
+- **Rentals** (paddles, balls) come **after** a start is chosen, in their own panel with your details, and re-quote live. They're an add-on to a court you've found, not a filter for finding one.
+
+## 8. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build

@@ -534,3 +534,10 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
 .field.grow { flex: 1 1 180px; }
 /* The summary's reassurances: a wrapped line lines up with the text, not the dash. */
 .reassure li { padding-left: 22px; text-indent: -22px; }
+
+/* ---------------------------------------------------------------- Courts (commit 012) */
+/* A peak start: marked in the accent, priced higher. */
+.tiles.compact .tile.peak .tile-meta { color: var(--brass); font-size: 12px; font-weight: 600; margin-top: 1px; }
+.tiles.compact .tile.peak { padding-top: 8px; padding-bottom: 7px; }
+/* In a row that mixes peak and regular starts, every time sits centered. */
+.tiles.compact .tile { justify-content: center; }
