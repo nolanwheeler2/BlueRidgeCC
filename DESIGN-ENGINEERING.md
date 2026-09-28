@@ -96,7 +96,21 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 - **Choosing a time folds the times** (Change Time). Then Your Details (`components/Details`, so a member books as themselves), **The Occasion** as choices, and Requests.
 - **A room that confirms its own tables** (`auto_confirm: false`) says so throughout and asks for a **Request**; the success page reads "Request Received". No payment is taken.
 
-## 12. Checking changes
+## 12. Tournaments (`pages/tournaments.js`, commit 017)
+- **The club's calendar,** not a card grid: events grouped by month (at the club), each a row (`.ev-row`) with:
+  - the day;
+  - the time, format and sport;
+  - the description;
+  - the entry fee, places left (amber when 5 or fewer, red when full) and when entries close;
+  - a thin bar for how full it is.
+- **What an event offers depends on the API:**
+  - `guests_can_enter` → **Enter** (or **Join the Waitlist** when full);
+  - otherwise the club's own page (`url`) → **Enter at the Club**;
+  - otherwise **Members Only**.
+- **Entering opens under the event** (`.ev-enter`): `Details`, then either `POST /tournaments/{id}/entries` (free, or the waitlist) or, when `entry_requires_payment`, a card payment `{ type: 'event_entry', event_id }`. The result replaces the button in place ("You're In" / "On the Waitlist").
+- `components/EventCard.js` is no longer used by any page. It's kept for reference.
+
+## 13. Checking changes
 With no Verde key, build and render against a mock API:
 ```bash
 npm install && npx next build

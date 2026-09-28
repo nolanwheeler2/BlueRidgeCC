@@ -636,3 +636,36 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
 .tile-dp .day { width: 100%; }
 .dp-pop.floating { z-index: 45; }
 @media (max-width: 560px) { .dp-field input { width: 100%; font-size: 17px; } .dp { width: 100%; } .dp-pop { width: min(296px, calc(100vw - 44px)); } }
+
+/* ---------------------------------------------------------------- Tournaments (commit 017) */
+/* The club's calendar: months, then each event as a row with its entry. */
+.events-page { max-width: 1040px; padding-top: 48px; padding-bottom: 104px; }
+.ev-month { margin-bottom: 56px; }
+.ev-month h2 { font-size: 34px; margin: 0 0 8px; letter-spacing: -.015em; }
+.ev-list { border-top: 1px solid var(--ink); }
+.ev-row { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 8px 28px; padding: 28px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.ev-date { text-align: left; font-family: var(--display); line-height: 1; }
+.ev-date b { display: block; font-weight: 300; font-size: 52px; letter-spacing: -.02em; }
+.ev-date span { display: block; margin-top: 6px; font-family: var(--sans); font-size: 14px; color: var(--muted); }
+.ev-main h3 { font-size: 28px; margin: 2px 0 4px; letter-spacing: -.012em; }
+.ev-when { margin: 0 0 10px; font-size: 15px; color: var(--ink-soft); font-weight: 500; }
+.ev-text { margin: 0 0 12px; font-size: 15.5px; line-height: 1.65; color: var(--ink-soft); max-width: 600px; }
+.ev-facts { margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 14px; color: var(--muted); }
+.ev-facts .low { color: var(--warn); font-weight: 500; }
+.ev-facts .warn { color: var(--bad); font-weight: 500; }
+.ev-main .spots { max-width: 320px; }
+.ev-action { padding-top: 6px; }
+.ev-done { display: inline-block; font-weight: 600; color: var(--ok); padding: 12px 0; }
+.ev-note { display: inline-block; font-size: 14.5px; color: var(--muted); padding: 12px 0; }
+/* Entering, right under the event. */
+.ev-enter { grid-column: 2 / -1; margin-top: 12px; padding: 24px; background: var(--white); border: 1px solid var(--line); }
+.ev-enter h4 { font-family: var(--display); font-weight: 400; font-size: 24px; margin: 0 0 4px; }
+.ev-pay { margin-top: 18px; max-width: 420px; }
+.ev-confirm { grid-column: 2 / -1; margin: 4px 0 0; color: var(--ok); font-size: 15px; }
+@media (max-width: 720px) {
+  .ev-row { grid-template-columns: 58px minmax(0, 1fr); }
+  .ev-date b { font-size: 38px; }
+  .ev-action { grid-column: 2; padding-top: 0; }
+  .ev-enter, .ev-confirm { grid-column: 1 / -1; padding: 18px; }
+  .ev-confirm { padding: 0; }
+}
