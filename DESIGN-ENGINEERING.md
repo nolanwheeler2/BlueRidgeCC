@@ -138,7 +138,7 @@ How the demo club site looks and why, and how Developer view works. Covers Blue 
 
 ## 15. The header's Reserve, and the booking bar (commit 020)
 - **Reserve** (`ReserveMenu` in `components/Layout.js`) is the header's call to action. It uses the logo's **gold** with a calendar mark, over a photo and on paper alike, and opens a menu of **everything the club books** (Tee Time, Simulator Bay, Court, Cottage, Table), each with a line icon, instead of only going to tee times. It opens on click, closes on a click away, Esc or navigation, and works the same on a phone.
-- **Booking bars hold one kind of control:** segmented choices of the same height. Tee times' cart is **Getting around: Walking | Cart**, not a toggle card, with its advice in the bar's note line. A toggle card (still used for rentals) is sized to match a segmented control.
+- **Every choice is a segmented control, including yes-or-no ones** (commit 021). Tee times' cart is **Getting around: Walking | Cart**, with its advice in the bar's note line. Court rentals are **Paddles: None | 2 | 4** beside **Balls: None | A Fresh Can**. Changing a tee time offers **Walking | Carts for the group**. The old toggle card (`Toggle`, `.togglecard`) is **removed** from `components/Picker.js` and the stylesheet, so a row of choices can't mix shapes again.
 - **Field labels are sentence case** ("Getting around", "How long"); headings, buttons and menu items are Title Case.
 
 ## 16. Checking changes

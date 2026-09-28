@@ -11,7 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import { api, money, newKey, todayPlus } from '../lib/verdeClient';
-import { DateStrip, TimeGroups, Toggle } from './Picker';
+import { DateStrip, Segmented, TimeGroups } from './Picker';
 import GroupPlayers, { groupFields } from './GroupPlayers';
 import CardPayment from './CardPayment';
 import Result from './Result';
@@ -67,7 +67,8 @@ export default function ChangeTeeTime({ booking, onDone, onClose }) {
       {times.length ? <TimeGroups slots={times} value={start} onPick={(s) => setStart(s.iso)} tz={list?.json?.timezone} /> : <p className="empty">No open times that day.</p>}
       <h3 style={{ margin: '20px 0 10px', fontSize: 15 }}>Who&rsquo;s playing</h3>
       <GroupPlayers value={group} onChange={setGroup} />
-      <div style={{ marginTop: 12 }}><Toggle checked={cart} onChange={setCart} title="Carts" detail="For the group" /></div>
+      {/* Walking or riding, the same control as the tee times page (commit 021). */}
+      <div style={{ marginTop: 12 }}><Segmented label="Getting around" value={cart ? 'cart' : 'walk'} onChange={(v) => setCart(v === 'cart')} options={[['walk', 'Walking'], ['cart', 'Carts for the group']]} /></div>
       {q ? <div className="notice info">New total {money(q.total_cents)}. {settle}</div> : null}
       {quote && !quote.ok ? <div className="notice bad">{quote.json?.error?.message}</div> : null}
       {applied && !applied.ok ? <div className="notice bad">{applied.json?.error?.message}</div> : null}

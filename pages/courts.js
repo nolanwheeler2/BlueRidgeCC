@@ -22,7 +22,7 @@ import Success from '../components/Success';
 import CardPayment from '../components/CardPayment';
 import Details, { person } from '../components/Details';
 import { useMember } from '../components/Member';
-import { StepBar, DateStrip, Segmented, Toggle } from '../components/Picker';
+import { StepBar, DateStrip, Segmented } from '../components/Picker';
 import { api, newKey, timeIn } from '../lib/verdeClient';
 import { useClub, useClubDate } from '../components/Club';
 import { fmtDay } from '../lib/clubTime';
@@ -140,7 +140,8 @@ export default function Courts() {
                     <p className="sub">Bring your own, or pick them up at the desk when you check in.</p>
                     <div className="fields">
                       <Segmented label="Paddles" value={paddles} onChange={(v) => { setPaddles(v); choose(pick.court, pick.start, v, balls); }} options={[[0, 'None'], [2, '2'], [4, '4']]} />
-                      <Toggle checked={balls} onChange={(v) => { setBalls(v); choose(pick.court, pick.start, paddles, v); }} title="Balls" detail="A fresh can for your session" />
+                      {/* The same control as paddles (commit 021). */}
+                      <Segmented label="Balls" value={balls ? 'yes' : 'no'} onChange={(v) => { const b = v === 'yes'; setBalls(b); choose(pick.court, pick.start, paddles, b); }} options={[['no', 'None'], ['yes', 'A Fresh Can']]} />
                     </div>
                   </div>
                   <div className="panel">

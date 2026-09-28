@@ -1,6 +1,8 @@
 // components/Picker.js
 // The booking pages' building blocks: a step bar, a strip of the next days,
 // segmented choices, and times grouped into morning, afternoon and evening.
+// Every yes-or-no choice is a segmented control too (commit 021): the old
+// toggle card is gone, so a booking bar only ever holds one kind of control.
 import { useClub } from './Club';
 import DatePicker from './DatePicker';
 import { addDays, clubToday, fmtDay } from '../lib/clubTime';
@@ -41,15 +43,6 @@ export function Segmented({ value, options, onChange, label }) {
         {options.map(([v, l]) => <button key={v} className={v === value ? 'on' : ''} onClick={() => onChange(v)}>{l}</button>)}
       </div>
     </div>
-  );
-}
-
-export function Toggle({ checked, onChange, title, detail }) {
-  return (
-    <button className={'togglecard' + (checked ? ' on' : '')} onClick={() => onChange(!checked)} aria-pressed={checked}>
-      <span className="box">{checked ? '✓' : ''}</span>
-      <span><b>{title}</b>{detail ? <small>{detail}</small> : null}</span>
-    </button>
   );
 }
 

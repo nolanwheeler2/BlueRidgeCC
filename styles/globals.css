@@ -266,12 +266,6 @@ textarea { line-height: 1.55; }
 .seg { display: inline-flex; border: 1px solid var(--line-2); border-radius: var(--r1); padding: 3px; background: var(--white); }
 .seg button { border: 0; background: transparent; font: 500 15px var(--sans); color: var(--ink-soft); padding: 9px 16px; border-radius: 1px; cursor: pointer; }
 .seg button.on { background: var(--ink); color: var(--white); box-shadow: none; }
-.togglecard { display: flex; align-items: center; gap: 12px; text-align: left; border: 1px solid var(--line-2); background: var(--white); border-radius: var(--r1); padding: 12px 16px; cursor: pointer; font-family: var(--sans); color: var(--ink); }
-.togglecard .box { width: 20px; height: 20px; border-radius: var(--r1); border: 1.5px solid var(--line-2); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; flex: none; }
-.togglecard.on { border-color: var(--ink); }
-.togglecard.on .box { background: var(--ink); border-color: var(--ink); }
-.togglecard b { display: block; font-size: 15px; font-weight: 600; }
-.togglecard small { display: block; font-size: 13.5px; color: var(--muted); }
 .options { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-end; margin-top: 22px; }
 
 .timegroups { display: grid; gap: 22px; margin-top: 24px; }
@@ -746,7 +740,6 @@ table.list th { font-size: 13.5px; font-weight: 500; color: var(--muted); }
 .reserve-menu a:hover .go { color: var(--ink); transform: translateX(3px); }
 @media (max-width: 560px) { .reserve { padding: 9px 12px; font-size: 14px; gap: 8px; } .reserve-menu { right: -54px; width: min(300px, calc(100vw - 32px)); } }
 
-/* The booking bar: every control the same height, labels aligned. A toggle
-   card (still used for rentals) matches a segmented control's height. */
-.tee-bar .seg-field, .tee-bar .togglecard { align-self: flex-end; }
-.togglecard { min-height: 46px; padding: 8px 14px; }
+/* The booking bar: one kind of control, every one the same height, labels
+   aligned (commits 020, 021). */
+.tee-bar .seg-field { align-self: flex-end; }
